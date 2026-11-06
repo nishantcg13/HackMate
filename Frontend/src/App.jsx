@@ -1,30 +1,33 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// Pages matching uploaded design
+// 9 Focused Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import Hackathons from "./pages/Hackathons";
+import FindTeammates from "./pages/FindTeammates";
 import Teams from "./pages/Teams";
-import JoinRequests from "./pages/JoinRequests";
+import CreateTeam from "./pages/CreateTeam";
 import Profile from "./pages/Profile";
+import JoinRequests from "./pages/JoinRequests";
 
-// Data
+// Teammate and Team Dummy Data
 import {
   initialCurrentUser,
-  initialHackathons,
+  initialParticipants,
   initialTeams,
   initialRequests,
 } from "./data/dummyData";
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(initialCurrentUser);
-  const [hackathons, setHackathons] = useState(initialHackathons);
+  const [participants, setParticipants] = useState(initialParticipants);
   const [teams, setTeams] = useState(initialTeams);
   const [requests, setRequests] = useState(initialRequests);
+  const [sentRequestIds, setSentRequestIds] = useState([]);
 
+  // Auth Handlers
   const handleLogin = (user) => {
     setCurrentUser(user);
   };
@@ -37,6 +40,7 @@ export default function App() {
     setCurrentUser(null);
   };
 
+  // Profile Update
   const handleUpdateProfile = (updatedProfile) => {
     setCurrentUser((prev) => ({
       ...prev,
@@ -44,45 +48,68 @@ export default function App() {
     }));
   };
 
+  // Team Creation
   const handleCreateTeam = (newTeam) => {
     setTeams((prev) => [newTeam, ...prev]);
-    // increment stats
-    setCurrentUser((prev) => ({
-      ...prev,
-      stats: {
-        ...prev.stats,
-        teams: (prev.stats?.teams || 0) + 1,
-      },
-    }));
   };
 
-  const handleJoinTeam = (teamId) => {
-    // increment request stats
-    setCurrentUser((prev) => ({
-      ...prev,
-      stats: {
-        ...prev.stats,
-        requests: (prev.stats?.requests || 0) + 1,
-      },
-    }));
+  // Leave Team
+  const handleLeaveTeam = (teamId) => {
+    setTeams((prev) =>
+      prev.map((t) => {
+        if (t.id === teamId) {
+          return {
+            ...t,
+            members: t.members.filter((m) => m.name !== currentUser?.name),
+          };
+        }
+        return t;
+      })
+    );
+  };
+
+  // Connect / Send Request to Participant
+  const handleRequestConnect = (participant) => {
+    if (!sentRequestIds.includes(participant.id)) {
+      setSentRequestIds([...sentRequestIds, participant.id]);
+    }
+
+    // Add to requests list as outgoing
+    const newReq = {
+      id: "req_" + Date.now(),
+      name: participant.name,
+      role: participant.role,
+      skills: participant.skills,
+      initials: participant.initials,
+      message: `Request sent to connect for upcoming hackathons.`,
+      teamName: "General Connection",
+      type: "outgoing",
+    };
+
+    setRequests((prev) => [newReq, ...prev]);
   };
 
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-white text-gray-900 font-sans antialiased">
         <Routes>
-          {/* Public Pages */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/register" element={<Register onRegister={handleRegister} />} />
+          {/* 1. Landing Page */}
+          <Route path="/" element={<Home currentUser={currentUser} />} />
 
-          {/* In-App Pages using shared Sidebar layout */}
+          {/* 2. Login Page */}
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+
+          {/* 3. Sign Up Page */}
+          <Route path="/register" element={<Register onRegister={handleRegister} />} />
+          <Route path="/signup" element={<Navigate to="/register" replace />} />
+
+          {/* 4. Dashboard */}
           <Route
             path="/dashboard"
             element={
               <Dashboard
                 currentUser={currentUser}
-                hackathons={hackathons}
+                participants={participants}
                 teams={teams}
                 requests={requests}
                 onLogout={handleLogout}
@@ -90,41 +117,46 @@ export default function App() {
             }
           />
 
+          {/* 5. Find Teammates Page */}
           <Route
-            path="/hackathons"
+            path="/find-teammates"
             element={
-              <Hackathons
+              <FindTeammates
                 currentUser={currentUser}
-                hackathons={hackathons}
+                participants={participants}
+                onRequestConnect={handleRequestConnect}
+                sentRequestIds={sentRequestIds}
                 onLogout={handleLogout}
               />
             }
           />
 
+          {/* 6. My Teams Page */}
           <Route
             path="/teams"
             element={
               <Teams
                 currentUser={currentUser}
                 teams={teams}
-                onCreateTeam={handleCreateTeam}
-                onJoinTeam={handleJoinTeam}
+                onLeaveTeam={handleLeaveTeam}
                 onLogout={handleLogout}
               />
             }
           />
 
+          {/* 7. Create Team Page */}
           <Route
-            path="/join-requests"
+            path="/create-team"
             element={
-              <JoinRequests
+              <CreateTeam
                 currentUser={currentUser}
-                requests={requests}
+                onCreateTeam={handleCreateTeam}
                 onLogout={handleLogout}
               />
             }
           />
 
+          {/* 8. Profile Page */}
           <Route
             path="/profile"
             element={
@@ -136,7 +168,20 @@ export default function App() {
             }
           />
 
-          {/* Fallback */}
+          {/* 9. Connection Requests Page */}
+          <Route
+            path="/requests"
+            element={
+              <JoinRequests
+                currentUser={currentUser}
+                requests={requests}
+                onLogout={handleLogout}
+              />
+            }
+          />
+          <Route path="/join-requests" element={<Navigate to="/requests" replace />} />
+
+          {/* Catch-all fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
