@@ -1,5 +1,6 @@
 import React from "react";
 
+// Reusable Button component with #A54100 primary brand color
 export default function Button({
   children,
   variant = "primary",
@@ -20,9 +21,9 @@ export default function Button({
   };
 
   const variantClasses = {
-    primary: "bg-[#D9531E] hover:bg-[#b84214] text-white shadow-xs",
+    primary: "bg-[#A54100] hover:bg-[#8A3600] text-white shadow-xs",
     secondary: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300",
-    outline: "bg-transparent hover:bg-orange-50 text-[#D9531E] border border-[#D9531E]",
+    outline: "bg-transparent hover:bg-[#FFF5EE] text-[#A54100] border border-[#A54100]",
     ghost: "bg-transparent hover:bg-gray-100 text-gray-600",
     danger: "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200",
   };

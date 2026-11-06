@@ -5,11 +5,10 @@ export default {
     extend: {
       colors: {
         brand: {
-          navy: "#1E1248",   // From Hackmate logo text
-          blue: "#2563EB",   // From blue puzzle piece
-          green: "#16A34A",  // From green puzzle piece
-          pink: "#DB2777",   // From magenta puzzle piece
-          yellow: "#D97706", // From yellow puzzle piece
+          DEFAULT: "#A54100",
+          hover: "#8A3600",
+          light: "#FFF5EE",
+          dark: "#702C00",
         },
       },
     },

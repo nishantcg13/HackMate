@@ -32,11 +32,10 @@ export default function Login({ onLogin }) {
           initials: "NG",
           email: formData.email,
           role: "Full Stack Developer",
-          experienceLevel: "Intermediate",
-          bio: "Passionate developer, always eager to learn and build cool things.",
-          skills: ["Java", "React", "MongoDB", "C++", "Web Development"],
-          avatar: "NG",
-          stats: { hackathons: 5, teams: 12, requests: 3 },
+          bio: "Passionate developer, always eager to learn and build innovative solutions. Looking for motivated teammates for hackathons.",
+          skills: ["React", "Node.js", "Java", "MongoDB", "Python"],
+          interests: ["Web Development", "AI Applications", "FinTech", "Open Source"],
+          stats: { teamsJoined: 2, teammatesConnected: 6, pendingRequests: 3 },
         });
       }
       navigate("/dashboard");
@@ -46,27 +45,22 @@ export default function Login({ onLogin }) {
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row">
       
-      {/* LEFT BRANDING PANEL */}
-      <div className="md:w-5/12 bg-gradient-to-br from-[#FFF1E7] via-[#FFEADB] to-[#FFF6F0] p-8 md:p-16 flex flex-col justify-center items-center text-center relative overflow-hidden">
-        {/* Decorative soft circles */}
-        <div className="w-72 h-72 rounded-full bg-white/40 blur-2xl absolute -top-10 -left-10" />
-
-        <div className="relative z-10 flex flex-col items-center">
-          <img
-            src="/logo.png"
-            alt="HackMate Logo"
-            className="w-16 h-16 object-contain mb-3"
-          />
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-            Hack<span className="text-[#D9531E]">Mate</span>
-          </h1>
-          <p className="text-xs text-gray-600 mt-2 font-medium tracking-wide">
-            Connect. Collaborate. Innovate.
-          </p>
-        </div>
+      {/* Left Branding Panel */}
+      <div className="md:w-5/12 bg-[#FFF5EE] p-8 md:p-16 flex flex-col justify-center items-center text-center border-b md:border-b-0 md:border-r border-orange-100">
+        <img
+          src="/logo.png"
+          alt="HackMate Logo"
+          className="w-16 h-16 object-contain mb-3"
+        />
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+          Hack<span className="text-[#A54100]">Mate</span>
+        </h1>
+        <p className="text-xs text-gray-600 mt-2 font-medium">
+          Connect with participants. Build your hackathon team.
+        </p>
       </div>
 
-      {/* RIGHT LOGIN FORM */}
+      {/* Right Login Form */}
       <div className="flex-1 p-8 md:p-20 flex flex-col justify-center items-center bg-white">
         <div className="w-full max-w-sm">
           
@@ -75,7 +69,7 @@ export default function Login({ onLogin }) {
               Welcome Back!
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              Login to continue
+              Login to view your teams and connection requests
             </p>
           </div>
 
@@ -98,7 +92,7 @@ export default function Login({ onLogin }) {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#D9531E] focus:border-[#D9531E]"
+                className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
               />
             </div>
 
@@ -113,7 +107,7 @@ export default function Login({ onLogin }) {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
-                className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg pl-9 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#D9531E] focus:border-[#D9531E]"
+                className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg pl-9 pr-9 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
               />
               <button
                 type="button"
@@ -136,8 +130,8 @@ export default function Login({ onLogin }) {
 
           <p className="mt-6 text-center text-xs text-gray-500">
             Don't have an account?{" "}
-            <Link to="/register" className="text-[#D9531E] font-semibold hover:underline">
-              Register
+            <Link to="/register" className="text-[#A54100] font-semibold hover:underline">
+              Sign Up
             </Link>
           </p>
 

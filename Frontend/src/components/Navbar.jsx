@@ -1,62 +1,40 @@
 import React, { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import Button from "./Button";
 
-export default function Navbar({ currentUser, onLogout }) {
+export default function Navbar({ currentUser }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // Navigation Links
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Hackathons", path: "/hackathons" },
     { name: "Find Teammates", path: "/find-teammates" },
     { name: "Teams", path: "/teams" },
-    { name: "Dashboard", path: "/dashboard" },
   ];
 
-  const isActive = (path) => {
-    if (path === "/" && location.pathname !== "/") return false;
-    return location.pathname.startsWith(path);
-  };
-
-  const handleLogout = () => {
-    if (onLogout) onLogout();
-    navigate("/login");
-  };
-
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Logo with HackMate Image */}
-          <Link to="/" className="flex items-center gap-2.5">
-            <img
-              src="/logo.png"
-              alt="HackMate Logo"
-              className="w-9 h-9 object-contain"
-            />
-            <span className="text-xl font-bold text-[#1E1248] tracking-tight">
-              HACK<span className="text-blue-600">MATE</span>
+          {/* Brand Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="HackMate Logo" className="w-8 h-8 object-contain" />
+            <span className="text-xl font-bold text-gray-900 tracking-tight">
+              Hack<span className="text-[#A54100]">Mate</span>
             </span>
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-8 text-xs font-semibold text-gray-600">
             {navLinks.map((link) => {
-              const active = isActive(link.path);
+              const active = location.pathname === link.path;
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                    active
-                      ? "text-blue-600 bg-blue-50"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  }`}
+                  className={active ? "text-[#A54100]" : "hover:text-gray-900"}
                 >
                   {link.name}
                 </Link>
@@ -64,53 +42,34 @@ export default function Navbar({ currentUser, onLogout }) {
             })}
           </div>
 
-          {/* Auth Controls */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Right Action Buttons */}
+          <div className="hidden sm:flex items-center gap-3">
             {currentUser ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-800 transition-colors"
-                >
-                  <img
-                    src={currentUser.avatar}
-                    alt={currentUser.name}
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
-                  <span className="text-xs font-semibold">
-                    {currentUser.name}
-                  </span>
-                </Link>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleLogout}
-                  icon={LogOut}
-                >
-                  Logout
-                </Button>
-              </div>
+              <Link to="/dashboard">
+                <Button size="sm">Go to Dashboard</Button>
+              </Link>
             ) : (
-              <div className="flex items-center gap-2">
+              <>
                 <Link to="/login">
                   <Button variant="secondary" size="sm">
-                    Log In
+                    Login
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button variant="primary" size="sm">
+                  <Button size="sm">
                     Sign Up
                   </Button>
                 </Link>
-              </div>
+              </>
             )}
           </div>
 
-          {/* Mobile hamburger button */}
-          <div className="flex md:hidden">
+          {/* Mobile hamburger */}
+          <div className="flex sm:hidden">
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+              className="p-1.5 text-gray-600 hover:text-gray-900"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -118,51 +77,29 @@ export default function Navbar({ currentUser, onLogout }) {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200 bg-white px-4 pt-2 pb-4 space-y-1">
+        <div className="sm:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-2 text-xs">
           {navLinks.map((link) => (
             <Link
               key={link.name}
               to={link.path}
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3 py-2 rounded-md text-sm font-medium ${
-                isActive(link.path)
-                  ? "text-blue-600 bg-blue-50 font-semibold"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              }`}
+              className="block py-1 text-gray-700 font-medium hover:text-[#A54100]"
             >
               {link.name}
             </Link>
           ))}
-
-          <div className="pt-3 border-t border-gray-200 flex flex-col gap-2">
-            {currentUser ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                icon={LogOut}
-              >
-                Log Out
+          <div className="pt-2 border-t border-gray-100 flex gap-2">
+            <Link to="/login" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+              <Button variant="secondary" size="sm" className="w-full">
+                Login
               </Button>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="secondary" size="sm" className="w-full">
-                    Log In
-                  </Button>
-                </Link>
-                <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="primary" size="sm" className="w-full">
-                    Sign Up
-                  </Button>
-                </Link>
-              </div>
-            )}
+            </Link>
+            <Link to="/register" className="flex-1" onClick={() => setMobileMenuOpen(false)}>
+              <Button size="sm" className="w-full">
+                Sign Up
+              </Button>
+            </Link>
           </div>
         </div>
       )}
