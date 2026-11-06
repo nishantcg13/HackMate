@@ -13,3 +13,5 @@ authRoutes.get("/login", login);
 authRoutes.get("/me", verifyToken, getCurrentUser);
 
 export default authRoutes;
+
+
