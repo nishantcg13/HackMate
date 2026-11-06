@@ -90,6 +90,7 @@ export async function searchHackathon(request, response) {
     });
   }
 }
+
 export async function getTeamsByHackathon(request, response) {
   try {
     const teams = await Team.find({
@@ -157,6 +158,38 @@ export async function createHackathon(request, response) {
     response.status(200).json({ hackathon });
   } catch (error) {
     console.error(error);
+    return response.status(500).json({ message: error.message });
+  }
+}
+
+export async function deleteHackathon(request, response) {
+  try {
+    const { id } = request.params;
+
+    const hackathon = await Hackathon.findById(id);
+
+    if (!hackathon) {
+      return response.status(404).json({ message: "Hackathon not found" });
+    }
+
+    // Check authorization: only creator or ADMIN can delete
+    if (
+      request.user &&
+      hackathon.createdBy.toString() !== request.user.id &&
+      request.user.role !== "ADMIN"
+    ) {
+      return response
+        .status(403)
+        .json({ message: "You are not authorized to delete this hackathon" });
+    }
+
+    await Hackathon.findByIdAndDelete(id);
+
+    return response.status(200).json({
+      message: "Hackathon deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete hackathon error:", error);
     return response.status(500).json({ message: error.message });
   }
 }

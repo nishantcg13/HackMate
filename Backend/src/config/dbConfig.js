@@ -6,7 +6,7 @@ const URL = process.env.MONGO_URI;
 const dbConnection = async () => {
   try {
     const conn = await mongoose.connect(
-      URL,
+     "mongodb://localhost:27017/hackmate_db"
     );
     console.log(`MongoDb Connected from ${conn.connection.host}`);
   } catch (error) {

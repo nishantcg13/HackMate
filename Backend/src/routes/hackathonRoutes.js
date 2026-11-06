@@ -6,6 +6,7 @@ import {
   searchHackathon,
   getTeamsByHackathon,
   createHackathon,
+  deleteHackathon,
 } from "../controller/hackathonController.js";
 
 const hackathonRoutes = Router();
@@ -22,6 +23,7 @@ hackathonRoutes.get(
 );
 hackathonRoutes.get("/:id", getHackathonById);
 hackathonRoutes.patch("/:id", updateHackathon);
+hackathonRoutes.delete("/:id", deleteHackathon);
 hackathonRoutes.get("/team/:id", getTeamsByHackathon);
 hackathonRoutes.post("/", createHackathon);
 export default hackathonRoutes;
