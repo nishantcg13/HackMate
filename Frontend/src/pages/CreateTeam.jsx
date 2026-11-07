@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Users, ArrowLeft, PlusCircle, CheckCircle, AlertCircle } from "lucide-react";
+import { Users, ArrowLeft, PlusCircle, AlertCircle, Trophy } from "lucide-react";
 import { createTeamApi } from "../services/api";
 
 export default function CreateTeam() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
+  const [hackathonName, setHackathonName] = useState("");
   const [description, setDescription] = useState("");
   const [requiredSkills, setRequiredSkills] = useState("");
   const [maxMembers, setMaxMembers] = useState(4);
@@ -16,8 +17,13 @@ export default function CreateTeam() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !description.trim()) {
-      setErrorMsg("Please fill in team name and description");
+    if (!localStorage.getItem("token")) {
+      navigate("/login");
+      return;
+    }
+
+    if (!name.trim() || !hackathonName.trim() || !description.trim()) {
+      setErrorMsg("Please fill in team name, hackathon name, and description");
       return;
     }
 
@@ -25,21 +31,25 @@ export default function CreateTeam() {
     setErrorMsg("");
 
     try {
-      await createTeamApi({
+      const payload = {
         name: name.trim(),
+        hackathonName: hackathonName.trim(),
         description: description.trim(),
         requiredSkills: requiredSkills
           .split(",")
           .map((s) => s.trim())
           .filter(Boolean),
         maxMembers: parseInt(maxMembers) || 4,
-      });
+      };
 
-      navigate("/my-teams");
+      const res = await createTeamApi(payload);
+      if (res?.team?._id) {
+        navigate(`/teams/${res.team._id}`);
+      } else {
+        navigate("/my-teams");
+      }
     } catch (err) {
-      console.log("Create team fallback:", err?.message);
-      // Even if offline, navigate to my-teams
-      navigate("/my-teams");
+      setErrorMsg(err?.response?.data?.message || "Failed to create team");
     } finally {
       setLoading(false);
     }
@@ -47,7 +57,6 @@ export default function CreateTeam() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 flex flex-col">
-      {/* Top Navbar */}
       <Navbar />
 
       <main className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
@@ -70,10 +79,10 @@ export default function CreateTeam() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                Create a Team
+                Create a Team (API #5)
               </h1>
               <p className="text-xs text-gray-500 mt-0.5">
-                Start a new hackathon team and recruit skilled teammates.
+                Start a new hackathon team. You will automatically become the Team Leader.
               </p>
             </div>
           </div>
@@ -101,6 +110,27 @@ export default function CreateTeam() {
               />
             </div>
 
+            {/* Hackathon Name Text Input (User entered, no dropdown) */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Hackathon Name *
+              </label>
+              <div className="relative">
+                <Trophy className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Smart India Hackathon, Web3 Summit, HackMIT"
+                  value={hackathonName}
+                  onChange={(e) => setHackathonName(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">
+                Enter the name of the hackathon or event your team is competing in.
+              </p>
+            </div>
+
             {/* Description */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -109,7 +139,7 @@ export default function CreateTeam() {
               <textarea
                 required
                 rows={3}
-                placeholder="Briefly describe what your team will build and the hackathon you're targeting..."
+                placeholder="Briefly describe what your team will build and your project plan..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
@@ -123,7 +153,7 @@ export default function CreateTeam() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. React, Node.js, UI/UX, Python"
+                placeholder="e.g. React, Node.js, UI/UX, Python, Spring Boot"
                 value={requiredSkills}
                 onChange={(e) => setRequiredSkills(e.target.value)}
                 className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
@@ -138,15 +168,17 @@ export default function CreateTeam() {
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 Maximum Team Size
               </label>
-              <input
-                type="number"
-                min={2}
-                max={10}
-                value={maxMembers}
-                onChange={(e) => setMaxMembers(e.target.value)}
-                className="w-32 bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
-              />
-              <span className="text-xs text-gray-500 ml-2">members (including you)</span>
+              <div className="flex items-center">
+                <input
+                  type="number"
+                  min={2}
+                  max={10}
+                  value={maxMembers}
+                  onChange={(e) => setMaxMembers(e.target.value)}
+                  className="w-28 bg-white border border-gray-300 rounded-xl px-3.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
+                />
+                <span className="text-xs text-gray-500 ml-2">members (including you as leader)</span>
+              </div>
             </div>
 
             {/* Submit Button */}
@@ -157,7 +189,7 @@ export default function CreateTeam() {
                 className="bg-[#A54100] hover:bg-[#8A3600] text-white font-semibold text-xs py-2.5 px-6 rounded-xl transition-colors shadow-2xs flex items-center gap-2 disabled:opacity-70"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>{loading ? "Creating..." : "Create Team"}</span>
+                <span>{loading ? "Creating Team..." : "Create Team"}</span>
               </button>
 
               <button
@@ -177,4 +209,3 @@ export default function CreateTeam() {
     </div>
   );
 }
-

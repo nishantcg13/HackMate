@@ -39,10 +39,10 @@ const joinRequestSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { collection: "joinRequests" }
+  { collection: "joinrequests" }
 );
 
-// Explicitly bind to the existing camelCase "joinRequests" collection
-const JoinRequest = mongoose.model("JoinRequest", joinRequestSchema, "joinRequests");
+// Explicitly bind to standard lowercase "joinrequests" collection
+const JoinRequest = mongoose.model("JoinRequest", joinRequestSchema, "joinrequests");
 
 export default JoinRequest;

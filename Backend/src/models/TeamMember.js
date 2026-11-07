@@ -30,10 +30,10 @@ const teamMemberSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { collection: "teamMembers" }
+  { collection: "teammembers" }
 );
 
-// Explicitly bind to the existing camelCase "teamMembers" collection
-const TeamMember = mongoose.model("TeamMember", teamMemberSchema, "teamMembers");
+// Explicitly bind to standard lowercase "teammembers" collection
+const TeamMember = mongoose.model("TeamMember", teamMemberSchema, "teammembers");
 
 export default TeamMember;

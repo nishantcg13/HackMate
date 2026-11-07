@@ -1,7 +1,9 @@
+import mongoose from "mongoose";
 import Team from "../models/Team.js";
 import TeamMember from "../models/TeamMember.js";
 import User from "../models/User.js";
 import JoinRequest from "../models/JoinRequest.js";
+import Hackathon from "../models/Hackathon.js";
 
 // ===============================================================
 // API #5: POST /api/teams
@@ -10,25 +12,71 @@ import JoinRequest from "../models/JoinRequest.js";
 export const createTeam = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, teamName, description, hackathonId, requiredSkills, maxMembers } = req.body;
+    const { name, teamName, description, hackathonId, hackathonName, requiredSkills, maxMembers } = req.body;
 
     // Use name or teamName (supports both frontend conventions)
     const finalName = name || teamName;
 
     // 1. Validation: check required fields
-    if (!finalName || !description || !hackathonId || !maxMembers) {
+    if (!finalName || !description || !maxMembers) {
       return res.status(400).json({
         success: false,
-        message: "Please provide team name, description, hackathonId, and maxMembers",
+        message: "Please provide team name, description, and maxMembers",
       });
     }
 
-    // 2. Create the team
+    // 2. Resolve hackathon from user-entered text or ID
+    const hackathonInput = (hackathonName || req.body.hackathon || hackathonId || "").toString().trim();
+    let finalHackathonId = null;
+
+    if (hackathonInput && mongoose.Types.ObjectId.isValid(hackathonInput)) {
+      finalHackathonId = hackathonInput;
+    } else if (hackathonInput) {
+      // Find existing hackathon by title (case-insensitive) or create a new one
+      let hackathonDoc = await Hackathon.findOne({
+        title: { $regex: new RegExp(`^${hackathonInput}$`, "i") },
+      });
+      if (!hackathonDoc) {
+        hackathonDoc = await Hackathon.create({
+          title: hackathonInput,
+          description: `${hackathonInput} Event`,
+          organizer: "HackMate",
+          location: "Online",
+          mode: "ONLINE",
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          registrationDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          status: "UPCOMING",
+          createdBy: userId,
+        });
+      }
+      finalHackathonId = hackathonDoc._id;
+    } else {
+      // Fallback: If left empty, link to default hackathon
+      let defaultHackathon = await Hackathon.findOne();
+      if (!defaultHackathon) {
+        defaultHackathon = await Hackathon.create({
+          title: "Hackathon 2026",
+          description: "Annual Tech Innovation Hackathon",
+          organizer: "HackMate",
+          location: "Online",
+          mode: "ONLINE",
+          startDate: new Date(),
+          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          registrationDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          status: "UPCOMING",
+          createdBy: userId,
+        });
+      }
+      finalHackathonId = defaultHackathon._id;
+    }
+
+    // 3. Create the team
     const team = await Team.create({
       name: finalName,
       description,
-      hackathon: hackathonId,
-      hackathonId,
+      hackathon: finalHackathonId,
+      hackathonId: finalHackathonId,
       leader: userId,
       leaderId: userId,
       requiredSkills: requiredSkills || [],
@@ -36,7 +84,7 @@ export const createTeam = async (req, res) => {
       status: "OPEN",
     });
 
-    // 3. Add the creator as the LEADER in TeamMember collection
+    // 4. Add the creator as the LEADER in TeamMember collection
     await TeamMember.create({
       team: team._id,
       teamId: team._id,

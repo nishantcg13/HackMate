@@ -1,65 +1,62 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Mail, Lock, Eye, EyeOff, Sparkles, AlertCircle } from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, Sparkles, AlertCircle, Check } from "lucide-react";
 import { registerApi } from "../services/api";
 
 export default function Register({ onRegister }) {
   const navigate = useNavigate();
 
-  // Form State
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [skills, setSkills] = useState("");
+  const [bio, setBio] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
-  // Submit Handler connected to Backend API
   const handleRegister = async (e) => {
     e.preventDefault();
     setErrorMsg("");
+    setSuccessMsg("");
 
     if (password !== confirmPassword) {
       setErrorMsg("Passwords do not match!");
       return;
     }
 
+    if (password.length < 6) {
+      setErrorMsg("Password should be at least 6 characters long.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Connect to Backend API
+      const skillsArray = skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
       await registerApi({
-        name: fullName,
-        email: email,
+        name: fullName.trim(),
+        email: email.trim().toLowerCase(),
         password: password,
+        skills: skillsArray,
+        bio: bio.trim(),
       });
 
-      if (onRegister) {
-        onRegister({
-          name: fullName || "New User",
-          email: email,
-          initial: (fullName || "N")[0].toUpperCase(),
-        });
-      }
-
-      navigate("/login");
+      setSuccessMsg("Account created successfully! Redirecting to login...");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err) {
-      console.warn("Backend Register Error or Server Offline. Local demo mode activated:", err?.message);
-      if (err.response?.data?.message) {
-        setErrorMsg(err.response.data.message);
-      } else {
-        // Fallback for smooth viva demo
-        if (onRegister) {
-          onRegister({
-            name: fullName || "New User",
-            email: email,
-            initial: (fullName || "N")[0].toUpperCase(),
-          });
-        }
-        navigate("/dashboard");
-      }
+      setErrorMsg(
+        err.response?.data?.message || "Registration failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -67,10 +64,9 @@ export default function Register({ onRegister }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      {/* Main Register Card */}
       <div className="bg-white border border-gray-200 rounded-3xl max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 overflow-hidden shadow-sm">
         
-        {/* Left Side: Brand & Collaboration Celebration */}
+        {/* Left Side: Brand */}
         <div className="p-8 sm:p-10 flex flex-col justify-between items-center text-center border-b md:border-b-0 md:border-r border-gray-100 bg-[#FAF9F6]/40">
           <div>
             <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain mx-auto mb-2" />
@@ -82,7 +78,6 @@ export default function Register({ onRegister }) {
             </p>
           </div>
 
-          {/* Clean Illustration of Teammates High-Fiving */}
           <div className="my-6 relative">
             <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-1 animate-pulse">
               <Sparkles className="w-4 h-4" />
@@ -112,8 +107,14 @@ export default function Register({ onRegister }) {
             </div>
           )}
 
-          <form onSubmit={handleRegister} className="space-y-3.5">
-            {/* Full Name Input */}
+          {successMsg && (
+            <div className="mb-4 p-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-xs flex items-center gap-2">
+              <Check className="w-4 h-4 shrink-0" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} className="space-y-3">
             <div className="relative">
               <User className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               <input
@@ -126,26 +127,34 @@ export default function Register({ onRegister }) {
               />
             </div>
 
-            {/* Email Input */}
             <div className="relative">
               <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               <input
                 type="email"
                 required
-                placeholder="Email"
+                placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
               />
             </div>
 
-            {/* Password Input */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Skills (comma separated, e.g. React, Node, Python)"
+                value={skills}
+                onChange={(e) => setSkills(e.target.value)}
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
+              />
+            </div>
+
             <div className="relative">
               <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                placeholder="Password"
+                placeholder="Password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-9 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
@@ -159,7 +168,6 @@ export default function Register({ onRegister }) {
               </button>
             </div>
 
-            {/* Confirm Password Input */}
             <div className="relative">
               <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               <input
@@ -179,7 +187,6 @@ export default function Register({ onRegister }) {
               </button>
             </div>
 
-            {/* Register Button in Terracotta/Brown */}
             <button
               type="submit"
               disabled={loading}
@@ -189,7 +196,6 @@ export default function Register({ onRegister }) {
             </button>
           </form>
 
-          {/* Already have an account */}
           <p className="text-center text-xs text-gray-500 mt-5">
             Already have an account?{" "}
             <Link to="/login" className="text-[#A54100] font-semibold hover:underline">

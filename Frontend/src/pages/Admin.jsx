@@ -17,7 +17,7 @@ import {
   Activity,
   AlertCircle
 } from "lucide-react";
-import { initialTeammates, initialTeams, initialRequests } from "../data/dummyData";
+import { getUsersApi, getTeamsApi, getReceivedRequestsApi, deleteTeamApi } from "../services/api";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -34,30 +34,66 @@ export default function Admin() {
   // Active Tab: 'overview' | 'users' | 'teams' | 'requests'
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Admin Data States
-  const [usersList, setUsersList] = useState([
-    {
-      id: 1,
-      name: "Nishant Galande",
-      email: "nishant@gmail.com",
-      role: "Full Stack Developer",
-      skills: ["Java", "Spring Boot", "React"],
-      status: "Active",
-      joined: "Nov 01, 2026",
-    },
-    ...initialTeammates.map((t, idx) => ({
-      id: t.id + 10,
-      name: t.name,
-      email: `${t.name.toLowerCase().replace(" ", "")}@gmail.com`,
-      role: t.role,
-      skills: t.skills,
-      status: "Active",
-      joined: `Nov 0${idx + 2}, 2026`,
-    })),
-  ]);
+  // Admin Data States from real Database
+  const [usersList, setUsersList] = useState([]);
+  const [teamsList, setTeamsList] = useState([]);
+  const [requestsList, setRequestsList] = useState([]);
 
-  const [teamsList, setTeamsList] = useState(initialTeams);
-  const [requestsList, setRequestsList] = useState(initialRequests);
+  // Fetch real database records on admin login
+  useEffect(() => {
+    if (!isAdminLoggedIn) return;
+    const fetchAdminData = async () => {
+      try {
+        const [uRes, tRes, rRes] = await Promise.allSettled([
+          getUsersApi(),
+          getTeamsApi(),
+          getReceivedRequestsApi(),
+        ]);
+        if (uRes.status === "fulfilled" && uRes.value?.data) {
+          setUsersList(
+            uRes.value.data.map((u) => ({
+              id: u._id || u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role || "USER",
+              skills: u.skills || [],
+              status: "Active",
+              joined: new Date(u.createdAt || Date.now()).toLocaleDateString(),
+            }))
+          );
+        }
+        if (tRes.status === "fulfilled" && (tRes.value?.teams || tRes.value?.data)) {
+          const rawTeams = tRes.value.teams || tRes.value.data;
+          setTeamsList(
+            rawTeams.map((t) => ({
+              id: t._id || t.id,
+              name: t.name,
+              description: t.description || "Hackathon Project Team",
+              leader: t.leader?.name || "Team Leader",
+              currentMembers: 1,
+              maxMembers: t.maxMembers || 4,
+              skills: t.requiredSkills || [],
+              requiredSkills: t.requiredSkills || [],
+            }))
+          );
+        }
+        if (rRes.status === "fulfilled" && rRes.value?.data) {
+          setRequestsList(
+            rRes.value.data.map((r) => ({
+              id: r._id,
+              name: r.user?.name || "Applicant",
+              team: r.team?.name || "Hackathon Team",
+              skills: r.user?.skills || [],
+              type: "incoming",
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Admin data fetch error:", err);
+      }
+    };
+    fetchAdminData();
+  }, [isAdminLoggedIn]);
 
   // Search Queries
   const [userSearch, setUserSearch] = useState("");
@@ -99,9 +135,14 @@ export default function Admin() {
     }
   };
 
-  // Delete/Disband Team
-  const handleDeleteTeam = (id, name) => {
-    if (window.confirm(`Are you sure you want to disband team "${name}"?`)) {
+  // Delete/Disband Team (calls API #9)
+  const handleDeleteTeam = async (id, name) => {
+    if (window.confirm(`Are you sure you want to disband team "${name}"? (API #9)`)) {
+      try {
+        await deleteTeamApi(id);
+      } catch (err) {
+        // quiet catch
+      }
       setTeamsList((prev) => prev.filter((t) => t.id !== id));
       triggerToast(`Team "${name}" disbanded.`);
     }

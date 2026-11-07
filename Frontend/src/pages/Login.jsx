@@ -6,37 +6,32 @@ import { loginApi } from "../services/api";
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("nishant@gmail.com");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Form submit handler with Backend API Integration
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      setErrorMsg("Please enter both email and password");
+      return;
+    }
+
     setLoading(true);
     setErrorMsg("");
 
     try {
-      // 1. Try real Backend Auth API
       const response = await loginApi(email, password);
       if (onLogin && response?.user) {
         onLogin(response.user);
-      } else if (onLogin) {
-        onLogin();
       }
       navigate("/dashboard");
     } catch (err) {
-      console.warn("Backend Login Error or Server Offline. Falling back to local demo login:", err?.message);
-      // If backend returns 401 or invalid password, display message
-      if (err.response?.data?.message) {
-        setErrorMsg(err.response.data.message);
-      } else {
-        // Backend might be offline; allow smooth demo fallback
-        if (onLogin) onLogin();
-        navigate("/dashboard");
-      }
+      setErrorMsg(
+        err.response?.data?.message || "Invalid email or password. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -44,7 +39,6 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      {/* Main Login Card */}
       <div className="bg-white border border-gray-200 rounded-3xl max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 overflow-hidden shadow-sm">
 
         {/* Left Side: Brand & Collaboration Illustration */}
@@ -59,7 +53,6 @@ export default function Login({ onLogin }) {
             </p>
           </div>
 
-          {/* Clean Illustration of 3 Teammates with Laptop & Lightbulb */}
           <div className="my-6 relative">
             <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-1 animate-pulse">
               <Lightbulb className="w-4 h-4" />
@@ -76,7 +69,7 @@ export default function Login({ onLogin }) {
           </p>
         </div>
 
-        {/* Right Side: Simple Login Form */}
+        {/* Right Side: Login Form */}
         <div className="p-8 sm:p-10 flex flex-col justify-center">
           <h2 className="text-xl font-bold text-gray-900 mb-6">
             Login
@@ -90,20 +83,18 @@ export default function Login({ onLogin }) {
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {/* Email Input */}
             <div className="relative">
               <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               <input
                 type="email"
                 required
-                placeholder="Email"
+                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-white border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
               />
             </div>
 
-            {/* Password Input */}
             <div className="relative">
               <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
               <input
@@ -123,7 +114,6 @@ export default function Login({ onLogin }) {
               </button>
             </div>
 
-            {/* Login Button in Terracotta/Brown */}
             <button
               type="submit"
               disabled={loading}
@@ -133,7 +123,6 @@ export default function Login({ onLogin }) {
             </button>
           </form>
 
-          {/* Register Link */}
           <p className="text-center text-xs text-gray-500 mt-5">
             Don't have an account?{" "}
             <Link to="/register" className="text-[#A54100] font-semibold hover:underline">

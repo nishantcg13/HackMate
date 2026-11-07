@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// Base API URL pointing to the backend (via Vite proxy or direct port 3000)
+// Base API URL pointing to the backend
 const API_BASE_URL = "http://localhost:3000/api";
 
 const api = axios.create({
@@ -20,19 +20,13 @@ api.interceptors.request.use((config) => {
 });
 
 // ==========================================
-// 1. AUTH APIs (Ready in Backend)
+// 1. AUTH APIs
 // ==========================================
 
 // Register a new user
 export const registerApi = async (userData) => {
-  try {
-    const response = await api.post("/auth/register", userData);
-    return response.data;
-  } catch (err) {
-    // Also try root /auth in case
-    const fallback = await api.post("/auth", userData);
-    return fallback.data;
-  }
+  const response = await api.post("/auth/register", userData);
+  return response.data;
 };
 
 // Login user
@@ -58,7 +52,65 @@ export const logoutApi = () => {
 };
 
 // ==========================================
-// 2. JOIN REQUEST APIs (Ready in Backend)
+// 2. TEAMS APIs (APIs #5 to #13)
+// ==========================================
+
+// API #5: Create a team
+export const createTeamApi = async (teamData) => {
+  const response = await api.post("/teams", teamData);
+  return response.data;
+};
+
+// API #6: Get all teams with optional filters & pagination
+export const getTeamsApi = async (params = {}) => {
+  const response = await api.get("/teams", { params });
+  return response.data;
+};
+
+// API #7: Get team by ID
+export const getTeamByIdApi = async (id) => {
+  const response = await api.get(`/teams/${id}`);
+  return response.data;
+};
+
+// API #8: Update team
+export const updateTeamApi = async (id, teamData) => {
+  const response = await api.put(`/teams/${id}`, teamData);
+  return response.data;
+};
+
+// API #9: Delete team
+export const deleteTeamApi = async (id) => {
+  const response = await api.delete(`/teams/${id}`);
+  return response.data;
+};
+
+// API #10: Get my teams (created or joined)
+export const getMyTeamsApi = async () => {
+  const response = await api.get("/teams/my-teams");
+  return response.data;
+};
+
+// API #11: Transfer leadership
+export const transferLeadershipApi = async (id, newLeaderId) => {
+  const response = await api.patch(`/teams/${id}/leader`, { newLeaderId });
+  return response.data;
+};
+
+// API #12: Search teams
+export const searchTeamsApi = async (params = {}) => {
+  const response = await api.get("/teams/search", { params });
+  return response.data;
+};
+
+// API #13: Get recommended teams
+export const getRecommendedTeamsApi = async () => {
+  const response = await api.get("/teams/recommended");
+  return response.data;
+};
+
+// ==========================================
+// 3. JOIN REQUEST APIs
 // ==========================================
 
 // Send Join Request to a team
@@ -98,7 +150,7 @@ export const cancelJoinRequestApi = async (requestId) => {
 };
 
 // ==========================================
-// 3. TEAM MEMBER APIs (Ready in Backend)
+// 4. TEAM MEMBER APIs
 // ==========================================
 
 // Get members of a specific team
@@ -126,7 +178,7 @@ export const addTeamMemberApi = async (teamId, userId) => {
 };
 
 // ==========================================
-// 4. USERS & TEAMS APIs (From MongoDB)
+// 5. USER & PROFILE APIs
 // ==========================================
 
 // Get all users / participants from MongoDB
@@ -138,23 +190,19 @@ export const getUsersApi = async (name = "", skill = "") => {
   return response.data;
 };
 
-// Get all teams from MongoDB
-export const getTeamsApi = async () => {
-  const response = await api.get("/teams");
+// Update user profile
+export const updateUserProfileApi = async (profileData) => {
+  const response = await api.put("/users/profile", profileData);
   return response.data;
 };
 
-// Get specific team details from MongoDB
-export const getTeamByIdApi = async (id) => {
-  const response = await api.get(`/teams/${id}`);
-  return response.data;
-};
+// ==========================================
+// 6. HACKATHON APIs
+// ==========================================
 
-// Create a new team in MongoDB
-export const createTeamApi = async (teamData) => {
-  const response = await api.post("/teams", teamData);
+export const getHackathonsApi = async () => {
+  const response = await api.get("/hackathons");
   return response.data;
 };
 
 export default api;
-

@@ -1,12 +1,49 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, UserCheck, Layers, Bell, Shield } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Users, UserCheck, Layers, Bell, Shield, LogOut } from "lucide-react";
+import { getReceivedRequestsApi, logoutApi } from "../services/api";
 
-// Top navigation bar used on all main pages
-export default function Navbar({ requestCount = 2 }) {
+export default function Navbar({ requestCount: propCount }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [incomingCount, setIncomingCount] = useState(propCount ?? 0);
 
-  // Navigation tabs matching the screenshot
+  const loggedUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
+  const userInitial = (loggedUser?.name || "U")[0].toUpperCase();
+
+  // Load actual incoming join request count if not provided
+  useEffect(() => {
+    if (propCount !== undefined) {
+      setIncomingCount(propCount);
+      return;
+    }
+    const fetchRequests = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const res = await getReceivedRequestsApi();
+        if (res?.data) {
+          setIncomingCount(res.data.length);
+        }
+      } catch {
+        // quiet catch
+      }
+    };
+    fetchRequests();
+  }, [propCount]);
+
+  const handleLogout = () => {
+    logoutApi();
+    navigate("/login");
+  };
+
   const navTabs = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { name: "Teammates", path: "/teammates", icon: Users },
@@ -51,8 +88,8 @@ export default function Navbar({ requestCount = 2 }) {
           })}
         </nav>
 
-        {/* Right: Admin Link, Notifications & Profile Avatar */}
-        <div className="flex items-center gap-2.5">
+        {/* Right: Admin Link, Notifications, Profile Avatar & Logout */}
+        <div className="flex items-center gap-3">
           <Link
             to="/admin"
             className="p-1.5 text-gray-400 hover:text-[#A54100] rounded-full hover:bg-orange-50 transition-colors"
@@ -67,19 +104,28 @@ export default function Navbar({ requestCount = 2 }) {
             title="Join Requests"
           >
             <Bell className="w-4 h-4" />
-            {requestCount > 0 && (
+            {incomingCount > 0 && (
               <span className="w-2 h-2 rounded-full bg-red-500 absolute top-1 right-1" />
             )}
           </Link>
 
-          {/* User Avatar Circle with initial 'N' */}
+          {/* User Avatar Circle */}
           <Link
             to="/profile"
             className="w-7 h-7 rounded-full bg-[#4C1D95] text-white flex items-center justify-center font-bold text-xs shadow-xs hover:opacity-90"
-            title="My Profile"
+            title={loggedUser?.name ? `Profile: ${loggedUser.name}` : "My Profile"}
           >
-            N
+            {userInitial}
           </Link>
+
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="p-1.5 text-gray-400 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
+            title="Log Out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
 
       </div>
