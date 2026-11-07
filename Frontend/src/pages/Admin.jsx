@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShieldCheck,
@@ -17,17 +17,15 @@ import {
   Activity,
   AlertCircle
 } from "lucide-react";
-import { getUsersApi, getTeamsApi, getReceivedRequestsApi, deleteTeamApi } from "../services/api";
+import { getUsersApi, getTeamsApi, getReceivedRequestsApi, deleteTeamApi, loginApi } from "../services/api";
 
 export default function Admin() {
   const navigate = useNavigate();
 
-  // Authentication State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(
-    () => localStorage.getItem("hackmate_admin_auth") === "true"
-  );
-  const [email, setEmail] = useState("admin@hackmate.com");
-  const [password, setPassword] = useState("admin123");
+  // Authentication State - Always prompt for login when accessing /admin
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState("");
 
@@ -109,22 +107,41 @@ export default function Admin() {
   };
 
   // Handle Admin Login
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    if (email === "admin@hackmate.com" && password === "admin123") {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    // 1. Direct credentials check (case-insensitive email)
+    if (cleanEmail === "admin@hackmate.com" && cleanPassword === "admin123") {
       setIsAdminLoggedIn(true);
-      localStorage.setItem("hackmate_admin_auth", "true");
       setLoginError("");
       triggerToast("Welcome to HackMate Admin Portal!");
-    } else {
-      setLoginError("Invalid admin credentials. Use admin@hackmate.com / admin123");
+      return;
+    }
+
+    // 2. Database API authentication (allows any registered ADMIN user)
+    try {
+      const res = await loginApi(cleanEmail, cleanPassword);
+      if (res?.user?.role === "ADMIN" || cleanEmail === "admin@hackmate.com") {
+        setIsAdminLoggedIn(true);
+        setLoginError("");
+        triggerToast("Welcome to HackMate Admin Portal!");
+      } else {
+        setLoginError("Access denied. This account does not have Admin privileges.");
+      }
+    } catch (err) {
+      setLoginError(
+        err?.response?.data?.message || "Invalid admin credentials. Please enter admin@hackmate.com / admin123"
+      );
     }
   };
 
   // Handle Admin Logout
   const handleAdminLogout = () => {
     setIsAdminLoggedIn(false);
-    localStorage.removeItem("hackmate_admin_auth");
+    setEmail("");
+    setPassword("");
   };
 
   // Delete User
@@ -222,11 +239,6 @@ export default function Admin() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
-
-            {/* Hint Box for Invigilator / Demo */}
-            <div className="p-2.5 bg-purple-50 rounded-xl border border-purple-100 text-[11px] text-purple-800">
-              <span className="font-bold">Demo Login:</span> admin@hackmate.com / admin123
             </div>
 
             {/* Submit Button */}

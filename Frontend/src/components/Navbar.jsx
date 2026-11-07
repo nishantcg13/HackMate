@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, UserCheck, Layers, Bell, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, UserCheck, Layers, Bell, Shield, LogOut } from "lucide-react";
 import { getReceivedRequestsApi, logoutApi } from "../services/api";
 
 export default function Navbar({ requestCount: propCount }) {
@@ -93,6 +93,18 @@ export default function Navbar({ requestCount: propCount }) {
 
         {/* Right: Notifications, Profile Avatar & Logout */}
         <div className="flex items-center gap-3">
+          {/* Admin link visible ONLY to logged-in ADMIN users */}
+          {loggedUser?.role === "ADMIN" && (
+            <Link
+              to="/admin"
+              className="px-2.5 py-1 text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors flex items-center gap-1"
+              title="Admin Console"
+            >
+              <Shield className="w-3.5 h-3.5 text-[#A54100]" />
+              <span>Admin</span>
+            </Link>
+          )}
+
           <Link
             to="/requests"
             className="p-1.5 text-gray-500 hover:text-gray-800 relative rounded-full hover:bg-gray-100 transition-colors"
