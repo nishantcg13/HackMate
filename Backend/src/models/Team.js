@@ -1,52 +1,61 @@
 import mongoose from "mongoose";
 
-const teamSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+const teamSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-  description: {
-    type: String,
-    required: true,
-  },
+    description: {
+      type: String,
+      required: true,
+    },
 
-  hackathonId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Hackathon",
-    required: true,
-  },
+    hackathonId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hackathon",
+    },
+    hackathon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hackathon",
+    },
 
-  leaderId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+    leader: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    leaderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
 
-  requiredSkills: {
-    type: [String],
-    default: [],
-  },
+    requiredSkills: {
+      type: [String],
+      default: [],
+    },
 
-  maxMembers: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
+    maxMembers: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
-  status: {
-    type: String,
-    enum: ["OPEN"],
-    default: "OPEN",
-  },
+    status: {
+      type: String,
+      default: "OPEN",
+    },
 
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-});
+  { collection: "teams" }
+);
 
-const Team = mongoose.model("Team", teamSchema);
+// Explicitly bind to the "teams" collection
+const Team = mongoose.model("Team", teamSchema, "teams");
 
 export default Team;

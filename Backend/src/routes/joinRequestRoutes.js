@@ -17,7 +17,7 @@ import {
   acceptJoinRequest,
   rejectJoinRequest,
   cancelJoinRequest
-} from "../controllers/joinRequestController.js";
+} from "../controller/joinRequestController.js";
 
 import verifyToken from "../middleware/authMiddleware.js";
 

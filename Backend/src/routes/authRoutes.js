@@ -10,6 +10,8 @@ const authRoutes = Router();
 
 
 authRoutes.post("/", registerUser);
+authRoutes.post("/register", registerUser);
+authRoutes.post("/login", login);
 authRoutes.get("/login", login);
 authRoutes.get("/me", verifyToken, getCurrentUser);
 

@@ -67,17 +67,27 @@ export const sendJoinRequest = async (req, res) => {
     }
 
     // Check whether requester is the team leader
-    if (team.leader.toString() === userId.toString()) {
+    const teamLeaderId =
+      team.leader?._id?.toString() ||
+      team.leader?.toString() ||
+      team.leaderId?._id?.toString() ||
+      team.leaderId?.toString();
+
+    if (teamLeaderId && teamLeaderId === userId.toString()) {
       return res.status(400).json({
         success: false,
-        message: "Team leader cannot send a join request to their own team"
+        message: "You cannot send a join request to your own team",
       });
     }
 
     // Check whether user is already a member
     const existingMember = await TeamMember.findOne({
-      team: teamId,
-      user: userId
+      $or: [
+        { team: teamId, user: userId },
+        { teamId: teamId, userId: userId },
+        { team: teamId, userId: userId },
+        { teamId: teamId, user: userId },
+      ],
     });
 
     if (existingMember) {

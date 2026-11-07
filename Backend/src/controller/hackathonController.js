@@ -16,40 +16,44 @@ export async function getHackathonById(request, response) {
   try {
     const id = request.params.id;
     const hackathon = await Hackathon.findById(id);
-    console.log(hackathon);
-    response.status(200).send(hackathon);
-  } catch (error) {
-    response.status(500).json({ message: "Internal Server Error" });
-  }
-}
-
-// remaining
-export async function updateHackathon(request, response) {
-  try {
-    const { id } = request.params;
-    const hackathon = await Hackathon.findById(id);
-
-    console.log(hackathon);
 
     if (!hackathon) {
       return response.status(404).json({ message: "Hackathon not found" });
     }
 
+    return response.status(200).json(hackathon);
+  } catch (error) {
+    return response.status(500).json({ message: error.message || "Internal Server Error" });
+  }
+}
+
+// Update Hackathon
+export async function updateHackathon(request, response) {
+  try {
+    const { id } = request.params;
+    const hackathon = await Hackathon.findById(id);
+
+    if (!hackathon) {
+      return response.status(404).json({ message: "Hackathon not found" });
+    }
+
+    // Check authorization: only creator or ADMIN can update
     if (
+      request.user &&
       hackathon.createdBy.toString() !== request.user.id &&
-      hackathon.user.role !== "ADMIN"
+      request.user.role !== "ADMIN"
     ) {
       return response
         .status(403)
-        .json({ message: "You are not authorized to update this hackathon" }); // 403 you cannot access the resource
+        .json({ message: "You are not authorized to update this hackathon" });
     }
 
     const updatedHackathon = await Hackathon.findByIdAndUpdate(
       id,
       request.body,
       {
-        new: true, // new : true returns updated document and if false it returns old document
-        runValidators: true, // when we update the document the the new data should be checked before insert so we make it true
+        new: true, // returns updated document
+        runValidators: true, // validates fields before updating
       },
     );
 
@@ -58,7 +62,7 @@ export async function updateHackathon(request, response) {
       hackathon: updatedHackathon,
     });
   } catch (error) {
-    response.status(500).json({ message: "Internal Server Error" });
+    return response.status(500).json({ message: error.message || "Internal Server Error" });
   }
 }
 export async function searchHackathon(request, response) {
@@ -142,20 +146,25 @@ export async function createHackathon(request, response) {
         message: "Invalid hackathon Dates",
       });
     }
+    const creatorId = request.user?.id || createdBy || "672a123456789abcdef12345";
+
     const hackathon = await Hackathon.create({
       title,
       description,
       organizer,
       location,
-      mode,
+      mode: mode.toUpperCase(),
       startDate,
       endDate,
       registrationDeadline,
-      status,
-      createdBy: "672a123456789abcdef12345",
+      status: status ? status.toUpperCase() : "UPCOMING",
+      createdBy: creatorId,
     });
 
-    response.status(200).json({ hackathon });
+    return response.status(201).json({
+      message: "Hackathon created successfully",
+      hackathon,
+    });
   } catch (error) {
     console.error(error);
     return response.status(500).json({ message: error.message });

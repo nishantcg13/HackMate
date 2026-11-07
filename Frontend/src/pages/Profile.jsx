@@ -1,276 +1,243 @@
-import React, { useState } from "react";
-import { Edit3, Check, X, Plus } from "lucide-react";
-import AppLayout from "../components/AppLayout";
-import Button from "../components/Button";
+import React, { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import { initialUser } from "../data/dummyData";
+import { Pencil, Check, X } from "lucide-react";
+import { getMeApi } from "../services/api";
 
-export default function Profile({ currentUser, onUpdateProfile, onLogout }) {
+export default function Profile() {
+  const [user, setUser] = useState(initialUser);
   const [isEditing, setIsEditing] = useState(false);
-  const [saveToast, setSaveToast] = useState(false);
 
+  // Fetch real profile from backend if user has logged in
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getMeApi();
+        if (data?.user) {
+          setUser({
+            ...initialUser,
+            name: data.user.name || initialUser.name,
+            email: data.user.email || initialUser.email,
+            about: data.user.bio || initialUser.about,
+            initial: (data.user.name || "N")[0].toUpperCase(),
+            skills: data.user.skills?.length ? data.user.skills : initialUser.skills,
+          });
+        }
+      } catch (err) {
+        // Quietly maintain dummy data if offline or not logged in
+        console.log("Using default demo profile:", err?.message);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // Edit form state
   const [formData, setFormData] = useState({
-    name: currentUser?.name || "Nishant Galande",
-    email: currentUser?.email || "nishant@example.com",
-    role: currentUser?.role || "Full Stack Developer",
-    bio:
-      currentUser?.bio ||
-      "Passionate developer, always eager to learn and build innovative solutions. Looking for motivated teammates for hackathons.",
-    skills: currentUser?.skills || ["React", "Node.js", "Java", "MongoDB", "Python"],
-    interests: currentUser?.interests || ["Web Development", "AI Applications", "FinTech", "Open Source"],
+    name: user.name,
+    email: user.email,
+    about: user.about,
+    skills: user.skills.join(", "),
+    interests: user.interests.join(", "),
   });
-
-  const [newSkill, setNewSkill] = useState("");
-  const [newInterest, setNewInterest] = useState("");
-
-  const handleAddSkill = (e) => {
-    e.preventDefault();
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
-      setFormData({
-        ...formData,
-        skills: [...formData.skills, newSkill.trim()],
-      });
-      setNewSkill("");
-    }
-  };
-
-  const handleRemoveSkill = (skillToRemove) => {
-    setFormData({
-      ...formData,
-      skills: formData.skills.filter((s) => s !== skillToRemove),
-    });
-  };
-
-  const handleAddInterest = (e) => {
-    e.preventDefault();
-    if (newInterest.trim() && !formData.interests.includes(newInterest.trim())) {
-      setFormData({
-        ...formData,
-        interests: [...formData.interests, newInterest.trim()],
-      });
-      setNewInterest("");
-    }
-  };
-
-  const handleRemoveInterest = (interestToRemove) => {
-    setFormData({
-      ...formData,
-      interests: formData.interests.filter((i) => i !== interestToRemove),
-    });
-  };
 
   const handleSave = (e) => {
     e.preventDefault();
-    if (onUpdateProfile) {
-      onUpdateProfile(formData);
-    }
+    setUser({
+      ...user,
+      name: formData.name,
+      email: formData.email,
+      about: formData.about,
+      initial: (formData.name || "N")[0].toUpperCase(),
+      skills: formData.skills.split(",").map((s) => s.trim()).filter(Boolean),
+      interests: formData.interests.split(",").map((i) => i.trim()).filter(Boolean),
+    });
     setIsEditing(false);
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2500);
   };
 
   return (
-    <AppLayout currentUser={currentUser} onLogout={onLogout}>
-      <div className="max-w-3xl space-y-6">
+    <div className="min-h-screen bg-gray-50/50 flex flex-col">
+      {/* Top Navbar */}
+      <Navbar />
+
+      <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
         
-        {saveToast && (
-          <div className="p-3 bg-green-50 border border-green-200 text-green-700 text-xs rounded-lg flex items-center gap-2">
-            <Check className="w-4 h-4 text-green-600" />
-            <span>Profile updated successfully!</span>
-          </div>
-        )}
-
+        {/* Header Title */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-            Manage your personal profile, skills, and hackathon project interests.
-          </p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+            My Profile
+          </h1>
         </div>
 
-        {/* Profile Details Card */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+        {/* 2-Column Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          {/* Header row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-150">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-[#A54100] text-white flex items-center justify-center text-xl font-bold shadow-xs shrink-0">
-                {currentUser?.initials || "NG"}
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {formData.name}
-                </h2>
-                <p className="text-xs text-[#A54100] font-semibold mt-0.5">
-                  {formData.role}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {formData.email}
-                </p>
-              </div>
+          {/* Left Column: Avatar & Basic Info */}
+          <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs flex flex-col items-center text-center justify-center space-y-4">
+            {/* Big Initial Circle */}
+            <div className="w-20 h-20 rounded-full bg-purple-100 text-purple-800 font-extrabold text-2xl flex items-center justify-center shadow-xs">
+              {user.initial}
             </div>
 
+            {/* Name & Email */}
             <div>
-              {!isEditing ? (
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={Edit3}
-                  onClick={() => setIsEditing(true)}
-                  className="px-4 text-xs font-semibold"
-                >
-                  Edit Profile
-                </Button>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button size="sm" onClick={handleSave}>
-                    Save Changes
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Form edit fields when editing */}
-          {isEditing && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Primary Role
-                </label>
-                <input
-                  type="text"
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                  className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg px-3 py-2"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Section: About / Bio */}
-          <div>
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
-              About Me
-            </h3>
-            {isEditing ? (
-              <textarea
-                rows={3}
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="w-full bg-white border border-gray-300 text-xs text-gray-900 rounded-lg p-3"
-              />
-            ) : (
-              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100">
-                {formData.bio}
+              <h2 className="text-base font-bold text-gray-900">
+                {user.name}
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {user.email}
               </p>
-            )}
-          </div>
-
-          {/* Section: Skills */}
-          <div>
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
-              Technical Skills
-            </h3>
-
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {formData.skills.map((skill, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md bg-gray-100 text-gray-800 font-medium"
-                >
-                  <span>{skill}</span>
-                  {isEditing && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(skill)}
-                      className="text-gray-400 hover:text-red-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </span>
-              ))}
             </div>
 
-            {isEditing && (
-              <div className="flex items-center gap-2 max-w-xs">
-                <input
-                  type="text"
-                  placeholder="Add skill (e.g. Next.js)..."
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  className="flex-1 bg-white border border-gray-300 text-xs rounded-lg px-2.5 py-1.5"
-                />
-                <Button variant="secondary" size="sm" icon={Plus} onClick={handleAddSkill}>
-                  Add
-                </Button>
-              </div>
-            )}
+            {/* Edit Profile Button */}
+            <button
+              type="button"
+              onClick={() => setIsEditing(!isEditing)}
+              className="w-full max-w-[180px] py-2 px-3 border border-purple-200 text-purple-700 hover:bg-purple-50 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              <span>{isEditing ? "Close" : "Edit Profile"}</span>
+            </button>
           </div>
 
-          {/* Section: Project Interests */}
-          <div>
-            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
-              Hackathon Project Interests
-            </h3>
+          {/* Right Column: Details or Edit Form */}
+          <div className="md:col-span-2 bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs">
+            {isEditing ? (
+              /* Simple Edit Form */
+              <form onSubmit={handleSave} className="space-y-4">
+                <h3 className="text-sm font-bold text-gray-900 border-b pb-2">
+                  Edit Profile Details
+                </h3>
 
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {formData.interests.map((int, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md bg-[#FFF5EE] text-[#A54100] border border-orange-200 font-medium"
-                >
-                  <span>{int}</span>
-                  {isEditing && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveInterest(int)}
-                      className="text-orange-400 hover:text-red-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </span>
-              ))}
-            </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                  />
+                </div>
 
-            {isEditing && (
-              <div className="flex items-center gap-2 max-w-xs">
-                <input
-                  type="text"
-                  placeholder="Add domain (e.g. HealthTech)..."
-                  value={newInterest}
-                  onChange={(e) => setNewInterest(e.target.value)}
-                  className="flex-1 bg-white border border-gray-300 text-xs rounded-lg px-2.5 py-1.5"
-                />
-                <Button variant="secondary" size="sm" icon={Plus} onClick={handleAddInterest}>
-                  Add
-                </Button>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    About Me
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.about}
+                    onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Skills (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.skills}
+                    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Interests (comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.interests}
+                    onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="submit"
+                    className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" /> Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="border border-gray-300 text-gray-600 hover:bg-gray-50 text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5"
+                  >
+                    <X className="w-3.5 h-3.5" /> Cancel
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Display View matching Screenshot */
+              <div className="space-y-6">
+                {/* About Me */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-900 mb-2">
+                    About Me
+                  </h3>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    {user.about}
+                  </p>
+                </div>
+
+                {/* Skills */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-900 mb-2">
+                    Skills
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {user.skills.map((skill, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-lg font-medium border border-green-200"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Interests */}
+                <div>
+                  <h3 className="text-xs font-bold text-gray-900 mb-2">
+                    Interests
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {user.interests.map((interest, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-lg font-medium border border-purple-100"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
         </div>
 
-      </div>
-    </AppLayout>
+      </main>
+    </div>
   );
 }

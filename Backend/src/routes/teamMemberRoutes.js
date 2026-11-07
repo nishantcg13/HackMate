@@ -15,7 +15,7 @@ import {
   removeTeamMember,
   leaveTeam,
   addTeamMember
-} from "../controllers/teamMemberController.js";
+} from "../controller/teamMemberController.js";
 
 import verifyToken from "../middleware/authMiddleware.js";
 

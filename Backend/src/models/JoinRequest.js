@@ -1,46 +1,48 @@
 import mongoose from "mongoose";
 
-const joinRequestSchema = new mongoose.Schema({
-  teamId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Team",
-    required: true,
-  },
-
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-
-  message: {
-    type: String,
-    default: "",
-  },
-
-  status: {
-    type: String,
-    enum: ["PENDING", "ACCEPTED", "REJECTED"],
-    default: "PENDING",
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-// Only one pending request per user for a particular team
-joinRequestSchema.index(
-  { teamId: 1, userId: 1 },
+const joinRequestSchema = new mongoose.Schema(
   {
-    unique: true,
-    partialFilterExpression: {
-      status: "PENDING",
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+    },
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+    },
+
+    requester: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    message: {
+      type: String,
+      default: "",
+    },
+
+    status: {
+      type: String,
+      default: "Pending",
+    },
+
+    createdAt: {
+      type: Date,
+      default: Date.now,
     },
   },
+  { collection: "joinRequests" }
 );
 
-const JoinRequest = mongoose.model("JoinRequest", joinRequestSchema);
+// Explicitly bind to the existing camelCase "joinRequests" collection
+const JoinRequest = mongoose.model("JoinRequest", joinRequestSchema, "joinRequests");
 
 export default JoinRequest;

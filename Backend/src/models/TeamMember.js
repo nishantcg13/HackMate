@@ -1,33 +1,39 @@
 import mongoose from "mongoose";
 
-const teamMemberSchema = new mongoose.Schema({
-  teamId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Team",
-    required: true,
+const teamMemberSchema = new mongoose.Schema(
+  {
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+    },
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+    },
+
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    role: {
+      type: String,
+      default: "Member",
+    },
+
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
+  { collection: "teamMembers" }
+);
 
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-
-  role: {
-    type: String,
-    enum: ["LEADER", "MEMBER"],
-    default: "MEMBER",
-  },
-
-  joinedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-// Prevent duplicate team membership
-teamMemberSchema.index({ teamId: 1, userId: 1 }, { unique: true });
-
-const TeamMember = mongoose.model("TeamMember", teamMemberSchema);
+// Explicitly bind to the existing camelCase "teamMembers" collection
+const TeamMember = mongoose.model("TeamMember", teamMemberSchema, "teamMembers");
 
 export default TeamMember;
