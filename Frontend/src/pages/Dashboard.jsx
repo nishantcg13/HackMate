@@ -31,7 +31,10 @@ export default function Dashboard({ currentUser }) {
         }
 
         if (requestsRes.status === "fulfilled" && requestsRes.value?.data) {
-          setRequestsCount(requestsRes.value.data.length);
+          const pendingOnly = requestsRes.value.data.filter(
+            (r) => r.status === "Pending" || !r.status
+          );
+          setRequestsCount(pendingOnly.length);
         }
       } catch {
         // quiet catch

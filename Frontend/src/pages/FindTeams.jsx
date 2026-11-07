@@ -93,7 +93,7 @@ export default function FindTeams() {
       <Navbar />
 
       <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
-        
+
         {/* Header Title & Create Team Button */}
         <div className="flex items-center justify-between">
           <div>
@@ -127,25 +127,23 @@ export default function FindTeams() {
           <button
             type="button"
             onClick={() => setViewMode("all")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              viewMode === "all"
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${viewMode === "all"
                 ? "bg-[#2E1065] text-white"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-            }`}
+              }`}
           >
             All Teams
           </button>
           <button
             type="button"
             onClick={() => setViewMode("recommended")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-              viewMode === "recommended"
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${viewMode === "recommended"
                 ? "bg-purple-700 text-white"
                 : "bg-white text-purple-700 border border-purple-200 hover:bg-purple-50"
-            }`}
-          >
+              }`}
+          > 
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Recommended for You (API #13)</span>
+            <span>Recommended for You</span>
           </button>
         </div>
 
@@ -225,11 +223,10 @@ export default function FindTeams() {
                           {team.name}
                         </h3>
                         {team.status && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${
-                            team.status === "OPEN"
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${team.status === "OPEN"
                               ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                               : "bg-gray-100 text-gray-600 border-gray-200"
-                          }`}>
+                            }`}>
                             {team.status}
                           </span>
                         )}
@@ -268,11 +265,10 @@ export default function FindTeams() {
                         type="button"
                         onClick={(e) => handleRequestJoin(e, teamId)}
                         disabled={isRequested}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                          isRequested
+                        className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${isRequested
                             ? "bg-green-50 text-green-700 border-green-200 cursor-default"
                             : "bg-white text-[#A54100] border-[#A54100] hover:bg-[#A54100] hover:text-white"
-                        }`}
+                          }`}
                       >
                         {isRequested ? (
                           <span className="flex items-center gap-1">

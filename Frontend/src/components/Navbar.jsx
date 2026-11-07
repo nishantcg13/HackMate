@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, UserCheck, Layers, Bell, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, UserCheck, Layers, Bell, LogOut } from "lucide-react";
 import { getReceivedRequestsApi, logoutApi } from "../services/api";
 
 export default function Navbar({ requestCount: propCount }) {
@@ -30,7 +30,10 @@ export default function Navbar({ requestCount: propCount }) {
       try {
         const res = await getReceivedRequestsApi();
         if (res?.data) {
-          setIncomingCount(res.data.length);
+          const pendingCount = res.data.filter(
+            (r) => r.status === "Pending" || !r.status
+          ).length;
+          setIncomingCount(pendingCount);
         }
       } catch {
         // quiet catch
@@ -88,16 +91,8 @@ export default function Navbar({ requestCount: propCount }) {
           })}
         </nav>
 
-        {/* Right: Admin Link, Notifications, Profile Avatar & Logout */}
+        {/* Right: Notifications, Profile Avatar & Logout */}
         <div className="flex items-center gap-3">
-          <Link
-            to="/admin"
-            className="p-1.5 text-gray-400 hover:text-[#A54100] rounded-full hover:bg-orange-50 transition-colors"
-            title="Admin Console"
-          >
-            <Shield className="w-4 h-4" />
-          </Link>
-
           <Link
             to="/requests"
             className="p-1.5 text-gray-500 hover:text-gray-800 relative rounded-full hover:bg-gray-100 transition-colors"

@@ -170,7 +170,10 @@ export const searchUsers = async (req, res) => {
     try {
         const { name, skill } = req.query;
 
-        const filter = {};
+        // Filter out ADMIN users - only participants can be teammates
+        const filter = {
+            role: { $ne: "ADMIN" }
+        };
 
         if (name) {
             filter.name = {

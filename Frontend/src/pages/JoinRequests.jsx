@@ -27,7 +27,11 @@ export default function JoinRequests() {
       ]);
 
       if (receivedRes.status === "fulfilled" && receivedRes.value?.data) {
-        setIncomingRequests(receivedRes.value.data);
+        // Only keep pending requests in incoming list
+        const pending = receivedRes.value.data.filter(
+          (r) => r.status === "Pending" || !r.status
+        );
+        setIncomingRequests(pending);
       } else {
         setIncomingRequests([]);
       }
@@ -53,31 +57,36 @@ export default function JoinRequests() {
     setTimeout(() => setFeedback(""), 3500);
   };
 
-  // Handle Accept (Incoming)
+  // Handle Accept: adds to team and pops from list
   const handleAccept = async (id) => {
     try {
+      setErrorMsg("");
       await acceptJoinRequestApi(id);
-      showToast("Join request accepted! The user is now added to your team.");
+      showToast("Join request accepted! Member added to your team.");
+      // Pop the request from the list immediately
       setIncomingRequests((prev) => prev.filter((r) => r._id !== id));
     } catch (e) {
       setErrorMsg(e?.response?.data?.message || "Failed to accept request");
     }
   };
 
-  // Handle Reject (Incoming)
+  // Handle Reject: rejects and pops from list
   const handleReject = async (id) => {
     try {
+      setErrorMsg("");
       await rejectJoinRequestApi(id);
       showToast("Join request rejected.");
+      // Pop the request from the list immediately
       setIncomingRequests((prev) => prev.filter((r) => r._id !== id));
     } catch (e) {
       setErrorMsg(e?.response?.data?.message || "Failed to reject request");
     }
   };
 
-  // Handle Cancel (My Requests)
+  // Handle Cancel (My Requests Sent): cancels and pops from list
   const handleCancelRequest = async (id) => {
     try {
+      setErrorMsg("");
       await cancelJoinRequestApi(id);
       showToast("Your join request has been cancelled.");
       setSentRequests((prev) => prev.filter((r) => r._id !== id));
@@ -97,9 +106,14 @@ export default function JoinRequests() {
         
         {/* Header Title & Refresh */}
         <div className="flex items-center justify-between">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            Join Requests
-          </h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Join Requests
+            </h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Review requests to join your teams and track your sent requests.
+            </p>
+          </div>
 
           <button
             onClick={fetchAllRequests}
@@ -202,6 +216,7 @@ export default function JoinRequests() {
                       </div>
                     </div>
 
+                    {/* Simple Accept / Reject Action Buttons */}
                     <div className="flex items-center gap-2 self-end sm:self-center">
                       <button
                         type="button"
@@ -285,8 +300,8 @@ export default function JoinRequests() {
                 <p className="text-sm font-semibold text-gray-700">No requests found</p>
                 <p className="text-xs text-gray-400">
                   {activeTab === "incoming"
-                    ? "You haven't received any join requests for your teams yet."
-                    : "You haven't sent any join requests to other teams yet."}
+                    ? "You have no pending join requests."
+                    : "You haven't sent any join requests to other teams."}
                 </p>
               </div>
             )}

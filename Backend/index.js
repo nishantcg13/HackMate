@@ -40,12 +40,12 @@ app.use("/api/auth", authRoutes);
 // Auto-seed Admin account if database is freshly created/empty
 const seedInitialData = async () => {
   try {
-    const existingAdmin = await User.findOne({ email: "admin@hackmate.com" });
+    const existingAdmin = await User.findOne({ email: "admin@gmail.com" });
     if (!existingAdmin) {
       const hashedPassword = await bcrypt.hash("admin123", 10);
       await User.create({
         name: "Admin",
-        email: "admin@hackmate.com",
+        email: "admin@gmail.com",
         password: hashedPassword,
         role: "ADMIN",
         skills: ["Administration", "Management"],

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
-import { Search, ChevronDown, UserPlus, Check, Users } from "lucide-react";
+import { Search, ChevronDown, Users, Mail } from "lucide-react";
 import { getUsersApi } from "../services/api";
 
 const avatarColors = [
@@ -15,7 +15,6 @@ export default function Teammates() {
   const [teammates, setTeammates] = useState([]);
   const [searchName, setSearchName] = useState("");
   const [selectedSkill, setSelectedSkill] = useState("All Skills");
-  const [requestedIds, setRequestedIds] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const loggedUser = (() => {
@@ -33,9 +32,14 @@ export default function Teammates() {
       const res = await getUsersApi(searchName, selectedSkill);
       const usersList = res?.data || (Array.isArray(res) ? res : []);
 
-      // Filter out the logged in user
+      // Filter out the logged in user and any admin accounts
       const filtered = usersList
-        .filter((u) => (u._id || u.id)?.toString() !== currentUserId?.toString())
+        .filter(
+          (u) =>
+            (u._id || u.id)?.toString() !== currentUserId?.toString() &&
+            u.role !== "ADMIN" &&
+            u.email !== "admin@hackmate.com"
+        )
         .map((u, idx) => ({
           id: u._id || u.id,
           name: u.name,
@@ -43,7 +47,7 @@ export default function Teammates() {
           role: u.bio || (u.skills?.[0] ? `${u.skills[0]} Developer` : "Full Stack Developer"),
           initial: (u.name || "U")[0].toUpperCase(),
           avatarColor: avatarColors[idx % avatarColors.length],
-          skills: u.skills?.length ? u.skills : ["Software Engineer"],
+          skills: u.skills?.length ? u.skills : ["Software Developer"],
         }));
 
       setTeammates(filtered);
@@ -62,12 +66,6 @@ export default function Teammates() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchUsers();
-  };
-
-  const handleRequest = (id) => {
-    if (!requestedIds.includes(id)) {
-      setRequestedIds([...requestedIds, id]);
-    }
   };
 
   const skillsList = [
@@ -95,7 +93,7 @@ export default function Teammates() {
             Find Teammates
           </h1>
           <p className="text-xs text-gray-500 mt-1">
-            Discover registered developers and potential collaborators from the database.
+            Browse registered developer profiles and explore their tech skills.
           </p>
         </div>
 
@@ -144,72 +142,59 @@ export default function Teammates() {
           </div>
         )}
 
-        {/* Teammates Cards Grid */}
+        {/* Teammates Profile Cards Grid */}
         {!loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-            {teammates.map((teammate) => {
-              const isRequested = requestedIds.includes(teammate.id);
-
-              return (
-                <div
-                  key={teammate.id}
-                  className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all"
-                >
-                  <div>
-                    {/* Avatar Circle with Initial */}
+            {teammates.map((teammate) => (
+              <div
+                key={teammate.id}
+                className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-sm hover:border-purple-200 transition-all"
+              >
+                <div>
+                  {/* Top: Avatar Circle with Initial */}
+                  <div className="flex items-center gap-3.5 mb-3.5">
                     <div
-                      className={`w-11 h-11 rounded-full ${teammate.avatarColor} flex items-center justify-center font-bold text-sm mb-3.5`}
+                      className={`w-12 h-12 rounded-full ${teammate.avatarColor} flex items-center justify-center font-bold text-base shrink-0 shadow-2xs`}
                     >
                       {teammate.initial}
                     </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900">
+                        {teammate.name}
+                      </h3>
+                      {teammate.email && (
+                        <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
+                          <Mail className="w-3 h-3 shrink-0" />
+                          <span className="truncate max-w-[180px]">{teammate.email}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                    {/* Name & Role */}
-                    <h3 className="text-sm font-bold text-gray-900">
-                      {teammate.name}
-                    </h3>
-                    <p className="text-xs text-gray-500 font-medium mt-0.5 mb-3.5">
-                      {teammate.role}
-                    </p>
+                  {/* Role / Bio */}
+                  <p className="text-xs text-gray-600 font-normal leading-relaxed mt-1 mb-4 line-clamp-2">
+                    {teammate.role}
+                  </p>
 
-                    {/* Skills Pills */}
-                    <div className="flex flex-wrap gap-1.5 mb-5">
+                  {/* Skills Section */}
+                  <div>
+                    <span className="block text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1.5">
+                      Skills
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
                       {teammate.skills.map((skill, idx) => (
                         <span
                           key={idx}
-                          className="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md font-medium border border-purple-100/50"
+                          className="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md font-medium border border-purple-100/60"
                         >
                           {skill}
                         </span>
                       ))}
                     </div>
                   </div>
-
-                  {/* Request Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleRequest(teammate.id)}
-                    disabled={isRequested}
-                    className={`w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
-                      isRequested
-                        ? "bg-green-50 text-green-700 border-green-200 cursor-default"
-                        : "bg-white text-purple-700 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-                    }`}
-                  >
-                    {isRequested ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-green-600" />
-                        <span>Invitation Sent</span>
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-3.5 h-3.5" />
-                        <span>+ Invite / Connect</span>
-                      </>
-                    )}
-                  </button>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
 
@@ -218,7 +203,7 @@ export default function Teammates() {
             <Users className="w-8 h-8 text-gray-300 mx-auto" />
             <p className="text-sm font-semibold text-gray-700">No teammates found</p>
             <p className="text-xs text-gray-400">
-              No registered developers match your search or filter.
+              No registered developers match your search or filter criteria.
             </p>
           </div>
         )}

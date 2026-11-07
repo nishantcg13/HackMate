@@ -220,17 +220,22 @@ export const getReceivedRequests = async (req, res) => {
 
     // Find all teams created/led by the logged-in user
     const teams = await Team.find({
-      leader: userId
+      $or: [{ leader: userId }, { leaderId: userId }],
     }).select("_id");
 
     // Get team IDs
     const teamIds = teams.map((team) => team._id);
 
+    // Build filter for join requests - only return pending requests that need leader action
+    const filter = {
+      $or: [{ team: { $in: teamIds } }, { teamId: { $in: teamIds } }],
+      status: req.query.status || "Pending",
+    };
+
     // Find join requests received by these teams
-    const requests = await JoinRequest.find({
-      team: { $in: teamIds }
-    })
+    const requests = await JoinRequest.find(filter)
       .populate("requester", "name email skills experience")
+      .populate("user", "name email skills")
       .populate("team", "name description leader maxMembers isOpen")
       .sort({ createdAt: -1 });
 
@@ -378,7 +383,10 @@ export const acceptJoinRequest = async (req, res) => {
     }
 
     // Check whether logged-in user is the team leader
-    if (team.leader.toString() !== userId.toString()) {
+    const isLeader =
+      (team.leader && team.leader.toString() === userId.toString()) ||
+      (team.leaderId && team.leaderId.toString() === userId.toString());
+    if (!isLeader) {
       return res.status(403).json({
         success: false,
         message: "Only the team leader can accept join requests"
@@ -394,9 +402,10 @@ export const acceptJoinRequest = async (req, res) => {
     }
 
     // Check whether requester is already a team member
+    const applicantId = joinRequest.requester || joinRequest.user || joinRequest.userId;
     const existingMember = await TeamMember.findOne({
-      team: team._id,
-      user: joinRequest.requester
+      $or: [{ team: team._id }, { teamId: team._id }],
+      $or: [{ user: applicantId }, { userId: applicantId }]
     });
 
     if (existingMember) {
@@ -408,7 +417,7 @@ export const acceptJoinRequest = async (req, res) => {
 
     // Count current team members
     const memberCount = await TeamMember.countDocuments({
-      team: team._id
+      $or: [{ team: team._id }, { teamId: team._id }]
     });
 
     // Check team capacity
@@ -422,7 +431,9 @@ export const acceptJoinRequest = async (req, res) => {
     // Add requester to TeamMember collection
     await TeamMember.create({
       team: team._id,
-      user: joinRequest.requester,
+      teamId: team._id,
+      user: applicantId,
+      userId: applicantId,
       role: "Member"
     });
 
