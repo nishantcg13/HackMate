@@ -1,139 +1,51 @@
-import { Router } from "express";
-import Team from "../models/Team.js";
-import TeamMember from "../models/TeamMember.js";
-import User from "../models/User.js";
+import express from "express";
 import verifyToken from "../middleware/authMiddleware.js";
+import {
+  createTeam,
+  getAllTeams,
+  getTeamById,
+  updateTeam,
+  deleteTeam,
+  getMyTeams,
+  transferLeadership,
+  searchTeams,
+  getRecommendedTeams,
+} from "../controller/teamController.js";
 
-const teamRoutes = Router();
+const router = express.Router();
 
-// GET all teams from MongoDB
-teamRoutes.get("/", async (req, res) => {
-  try {
-    const teams = await Team.find()
-      .populate("leader", "name email")
-      .populate("leaderId", "name email");
+// ===============================================================
+// Note: Specific routes (/my-teams, /search, /recommended) must come
+// BEFORE parameterized routes (/:id) to prevent Express from treating
+// words like "my-teams" as an ID parameter!
+// ===============================================================
 
-    // Fetch member count for each team
-    const teamsWithMembers = await Promise.all(
-      teams.map(async (team) => {
-        const memberCount = await TeamMember.countDocuments({
-          $or: [{ team: team._id }, { teamId: team._id }],
-        });
+// API #10: Retrieve teams created or joined by authenticated user
+router.get("/my-teams", verifyToken, getMyTeams);
 
-        return {
-          id: team._id,
-          _id: team._id,
-          name: team.name,
-          description: team.description,
-          leader: team.leader?.name || team.leaderId?.name || "Team Leader",
-          requiredSkills: team.requiredSkills || [],
-          skills: team.requiredSkills?.length ? team.requiredSkills : ["General"],
-          maxMembers: team.maxMembers || 5,
-          currentMembers: Math.max(memberCount, 1),
-        };
-      })
-    );
+// API #12: Search teams by hackathon, skills, status or keywords
+router.get("/search", searchTeams);
 
-    return res.status(200).json({
-      success: true,
-      message: "Teams fetched successfully",
-      data: teamsWithMembers,
-    });
-  } catch (error) {
-    console.error("Fetch teams error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-});
+// API #13: Recommend teams using skill overlap
+router.get("/recommended", verifyToken, getRecommendedTeams);
 
-// POST create a new team in MongoDB
-teamRoutes.post("/", async (req, res) => {
-  try {
-    const { name, description, requiredSkills, maxMembers, leaderId } = req.body;
+// API #5: Create a team for a hackathon (creator becomes leader)
+router.post("/", verifyToken, createTeam);
 
-    if (!name || !description) {
-      return res.status(400).json({
-        success: false,
-        message: "Team name and description are required",
-      });
-    }
+// API #6: Retrieve teams, with optional filters and pagination
+router.get("/", getAllTeams);
 
-    // Determine leader user ID (from token or fallback to passed leaderId or first user in DB)
-    let leader = req.user?.id || req.user?._id || leaderId;
-    if (!leader) {
-      const firstUser = await User.findOne();
-      leader = firstUser?._id;
-    }
+// API #7: Retrieve details of a particular team
+router.get("/:id", getTeamById);
 
-    const skillsArray = Array.isArray(requiredSkills)
-      ? requiredSkills
-      : typeof requiredSkills === "string"
-      ? requiredSkills.split(",").map((s) => s.trim()).filter(Boolean)
-      : [];
+// API #8: Update team information (checks leader/admin permission)
+router.put("/:id", verifyToken, updateTeam);
 
-    const newTeam = await Team.create({
-      name,
-      description,
-      requiredSkills: skillsArray,
-      maxMembers: parseInt(maxMembers) || 5,
-      leader: leader,
-      leaderId: leader,
-      status: "OPEN",
-    });
+// API #9: Delete a team (checks permission & cleans up related records)
+router.delete("/:id", verifyToken, deleteTeam);
 
-    // Also add leader into teamMembers collection
-    if (leader) {
-      await TeamMember.create({
-        team: newTeam._id,
-        teamId: newTeam._id,
-        user: leader,
-        userId: leader,
-        role: "LEADER",
-      });
-    }
+// API #11: Transfer team leadership to an eligible existing member
+router.patch("/:id/leader", verifyToken, transferLeadership);
 
-    return res.status(201).json({
-      success: true,
-      message: "Team created successfully",
-      data: newTeam,
-    });
-  } catch (error) {
-    console.error("Create team error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message,
-    });
-  }
-});
+export default router;
 
-// GET team by ID
-teamRoutes.get("/:id", async (req, res) => {
-  try {
-    const team = await Team.findById(req.params.id)
-      .populate("leader", "name email")
-      .populate("leaderId", "name email");
-
-    if (!team) {
-      return res.status(404).json({ success: false, message: "Team not found" });
-    }
-
-    const members = await TeamMember.find({
-      $or: [{ team: team._id }, { teamId: team._id }],
-    }).populate("user", "name email skills").populate("userId", "name email skills");
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        ...team.toObject(),
-        members,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error" });
-  }
-});
-
-export default teamRoutes;

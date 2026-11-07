@@ -46,7 +46,7 @@ export default function Login({ onLogin }) {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       {/* Main Login Card */}
       <div className="bg-white border border-gray-200 rounded-3xl max-w-3xl w-full grid grid-cols-1 md:grid-cols-2 overflow-hidden shadow-sm">
-        
+
         {/* Left Side: Brand & Collaboration Illustration */}
         <div className="p-8 sm:p-10 flex flex-col justify-between items-center text-center border-b md:border-b-0 md:border-r border-gray-100 bg-[#FAF9F6]/40">
           <div>
