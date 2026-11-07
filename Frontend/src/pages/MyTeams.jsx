@@ -39,7 +39,7 @@ export default function MyTeams() {
       <Navbar />
 
       <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
-        
+
         {/* Header Title & Create Team Button */}
         <div className="flex items-center justify-between">
           <div>
@@ -47,7 +47,7 @@ export default function MyTeams() {
               My Teams
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              Teams you have created or joined as a member (API #10).
+              Teams you have created or joined as a member.
             </p>
           </div>
 
@@ -98,11 +98,10 @@ export default function MyTeams() {
                           {team.name}
                         </h3>
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
-                            isLeader
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${isLeader
                               ? "bg-green-50 text-green-700 border-green-200"
                               : "bg-blue-50 text-blue-700 border-blue-200"
-                          }`}
+                            }`}
                         >
                           {roleLabel}
                         </span>

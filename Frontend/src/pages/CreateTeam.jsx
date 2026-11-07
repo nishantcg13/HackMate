@@ -60,7 +60,7 @@ export default function CreateTeam() {
       <Navbar />
 
       <main className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
-        
+
         {/* Back Link */}
         <Link
           to="/teams"
@@ -72,14 +72,14 @@ export default function CreateTeam() {
 
         {/* Main Form Card */}
         <div className="bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
-          
+
           <div className="flex items-center gap-3 border-b pb-4">
             <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
               <Users className="w-6 h-6 text-[#A54100]" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                Create a Team (API #5)
+                Create a Team
               </h1>
               <p className="text-xs text-gray-500 mt-0.5">
                 Start a new hackathon team. You will automatically become the Team Leader.
