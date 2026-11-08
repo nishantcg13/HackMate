@@ -54,9 +54,13 @@ export default function Register({ onRegister }) {
         navigate("/login");
       }, 1500);
     } catch (err) {
-      setErrorMsg(
-        err.response?.data?.message || "Registration failed. Please try again."
-      );
+      console.error("Registration error:", err);
+      const message =
+        err.response?.data?.message ||
+        (!err.response
+          ? "Cannot connect to server. Please check if Backend is running (port 3000) and MongoDB is started."
+          : "Registration failed. Please try again.");
+      setErrorMsg(message);
     } finally {
       setLoading(false);
     }

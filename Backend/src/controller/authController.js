@@ -1,8 +1,10 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import "dotenv";
-const JWT_SECRET = process.env.JWT_SECRET;
+import "dotenv/config";
+
+const JWT_SECRET = process.env.JWT_SECRET || "hello@123";
+
 export async function registerUser(request, response) {
   try {
     let { name, email, password, skills, bio } = request.body;
@@ -10,14 +12,20 @@ export async function registerUser(request, response) {
     if (!name || !email || !password) {
       return response.status(400).json({ message: "All fields are required" });
     }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existingUser) {
+      return response.status(400).json({ message: "A user with this email already exists" });
+    }
+
     let hashedPassword = await bcrypt.hash(password, 10);
-    console.log(hashedPassword);
     let createdUser = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
-      skills,
-      bio,
+      skills: skills || [],
+      bio: bio || "",
     });
 
     return response.status(201).json({
@@ -26,7 +34,11 @@ export async function registerUser(request, response) {
       email: createdUser.email,
     });
   } catch (error) {
-    return response.status(500).json({ message: "Internal Server Error" });
+    console.error("Register User Error:", error);
+    if (error.code === 11000) {
+      return response.status(400).json({ message: "A user with this email already exists" });
+    }
+    return response.status(500).json({ message: error.message || "Internal Server Error" });
   }
 }
 
@@ -58,9 +70,9 @@ export async function login(request, response) {
 
     const token = jwt.sign(
       {
-        id: user.id,
+        id: user.id || user._id,
       },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
     );
 
     return response.status(200).json({
