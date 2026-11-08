@@ -489,13 +489,14 @@ export const searchTeams = async (req, res) => {
       };
     }
 
-    // Keyword search in team name or description
+    // Keyword search in team name, description, or required skills
     if (q) {
       query.$and = [
         {
           $or: [
             { name: { $regex: q, $options: "i" } },
             { description: { $regex: q, $options: "i" } },
+            { requiredSkills: { $regex: q, $options: "i" } },
           ],
         },
       ];

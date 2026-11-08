@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Search, ChevronDown, Users, Check, Plus, Sparkles, Filter, Calendar } from "lucide-react";
+import { Search, Users, Check, Plus, Sparkles, Filter, Calendar } from "lucide-react";
 import { getTeamsApi, searchTeamsApi, getRecommendedTeamsApi, sendJoinRequestApi } from "../services/api";
 import { formatDate } from "../utils/dateUtils";
 
@@ -9,7 +9,6 @@ export default function FindTeams() {
   const navigate = useNavigate();
   const [teams, setTeams] = useState([]);
   const [searchName, setSearchName] = useState("");
-  const [selectedSkill, setSelectedSkill] = useState("All Skills");
   const [viewMode, setViewMode] = useState("all"); // 'all' or 'recommended'
   const [requestedTeamIds, setRequestedTeamIds] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,17 +24,14 @@ export default function FindTeams() {
   })();
   const currentUserId = loggedInUser?._id || loggedInUser?.id;
 
-  const fetchTeams = async () => {
+  const fetchTeams = async (searchTerm = searchName) => {
     try {
       setLoading(true);
       if (viewMode === "recommended") {
         const res = await getRecommendedTeamsApi();
         setTeams(res?.teams || []);
-      } else if (searchName.trim() || (selectedSkill && selectedSkill !== "All Skills")) {
-        const params = {};
-        if (searchName.trim()) params.q = searchName.trim();
-        if (selectedSkill && selectedSkill !== "All Skills") params.skills = selectedSkill;
-        const res = await searchTeamsApi(params);
+      } else if (searchTerm.trim()) {
+        const res = await searchTeamsApi({ q: searchTerm.trim() });
         setTeams(res?.teams || []);
       } else {
         const res = await getTeamsApi();
@@ -51,11 +47,19 @@ export default function FindTeams() {
 
   useEffect(() => {
     fetchTeams();
-  }, [viewMode, selectedSkill]);
+  }, [viewMode]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchTeams();
+  };
+
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearchName(val);
+    if (!val.trim()) {
+      fetchTeams("");
+    }
   };
 
   const handleRequestJoin = async (e, teamId) => {
@@ -75,19 +79,6 @@ export default function FindTeams() {
       console.error("Team join request error:", err?.response?.data?.message || err?.message);
     }
   };
-
-  const skillsList = [
-    "All Skills",
-    "React",
-    "Node.js",
-    "MongoDB",
-    "Java",
-    "Spring Boot",
-    "Python",
-    "Express",
-    "DevOps",
-    "UI/UX",
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50/50 flex flex-col">
@@ -148,39 +139,23 @@ export default function FindTeams() {
           </button>
         </div>
 
-        {/* Search & Filter Bar */}
-        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
+        {/* Search Bar */}
+        <form onSubmit={handleSearchSubmit} className="flex gap-2.5">
           {/* Search Input */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search by team name or keyword..."
+              placeholder="Search by team name, skill, or keyword..."
               value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-2xs"
             />
           </div>
 
-          {/* Skill Dropdown */}
-          <div className="relative min-w-[140px]">
-            <select
-              value={selectedSkill}
-              onChange={(e) => setSelectedSkill(e.target.value)}
-              className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 pr-8 text-xs text-gray-700 appearance-none focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-2xs cursor-pointer"
-            >
-              {skillsList.map((skill) => (
-                <option key={skill} value={skill}>
-                  {skill}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-gray-400 absolute right-2.5 top-2.5 pointer-events-none" />
-          </div>
-
           <button
             type="submit"
-            className="bg-[#4C1D95] hover:bg-[#3B1578] text-white text-xs font-semibold px-4 py-2 rounded-xl"
+            className="bg-[#4C1D95] hover:bg-[#3B1578] text-white text-xs font-semibold px-5 py-2 rounded-xl transition-colors shadow-2xs shrink-0"
           >
             Search
           </button>
@@ -285,7 +260,7 @@ export default function FindTeams() {
                           : "bg-white text-[#A54100] border-[#A54100] hover:bg-[#A54100] hover:text-white"
                           }`}
                       >
-                        {isRequested ? (
+                        {isRequested ? ( 
                           <span className="flex items-center gap-1">
                             <Check className="w-3.5 h-3.5" /> Requested
                           </span>
