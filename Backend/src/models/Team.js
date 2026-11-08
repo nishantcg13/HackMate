@@ -47,6 +47,18 @@ const teamSchema = new mongoose.Schema(
       default: "OPEN",
     },
 
+    startDate: {
+      type: Date,
+    },
+
+    endDate: {
+      type: Date,
+    },
+
+    registrationDeadline: {
+      type: Date,
+    },
+
     createdAt: {
       type: Date,
       default: Date.now,

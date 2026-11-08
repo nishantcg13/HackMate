@@ -12,7 +12,21 @@ import Hackathon from "../models/Hackathon.js";
 export const createTeam = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, teamName, description, hackathonId, hackathonName, requiredSkills, maxMembers } = req.body;
+    const {
+      name,
+      teamName,
+      description,
+      hackathonId,
+      hackathonName,
+      requiredSkills,
+      maxMembers,
+      startDate,
+      endDate,
+      registrationDeadline,
+      registrationEndDate,
+    } = req.body;
+
+    const finalRegDeadline = registrationDeadline || registrationEndDate;
 
     // Use name or teamName (supports both frontend conventions)
     const finalName = name || teamName;
@@ -43,9 +57,9 @@ export const createTeam = async (req, res) => {
           organizer: "HackMate",
           location: "Online",
           mode: "ONLINE",
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          registrationDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          startDate: startDate ? new Date(startDate) : new Date(),
+          endDate: endDate ? new Date(endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          registrationDeadline: finalRegDeadline ? new Date(finalRegDeadline) : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
           status: "UPCOMING",
           createdBy: userId,
         });
@@ -61,9 +75,9 @@ export const createTeam = async (req, res) => {
           organizer: "HackMate",
           location: "Online",
           mode: "ONLINE",
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          registrationDeadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          startDate: startDate ? new Date(startDate) : new Date(),
+          endDate: endDate ? new Date(endDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          registrationDeadline: finalRegDeadline ? new Date(finalRegDeadline) : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
           status: "UPCOMING",
           createdBy: userId,
         });
@@ -81,6 +95,9 @@ export const createTeam = async (req, res) => {
       leaderId: userId,
       requiredSkills: requiredSkills || [],
       maxMembers: Number(maxMembers),
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      registrationDeadline: finalRegDeadline ? new Date(finalRegDeadline) : undefined,
       status: "OPEN",
     });
 
@@ -227,12 +244,27 @@ export const updateTeam = async (req, res) => {
     }
 
     // 3. Update the fields provided in body
-    const { name, teamName, description, requiredSkills, maxMembers, status } = req.body;
+    const {
+      name,
+      teamName,
+      description,
+      requiredSkills,
+      maxMembers,
+      status,
+      startDate,
+      endDate,
+      registrationDeadline,
+      registrationEndDate,
+    } = req.body;
     if (name || teamName) team.name = name || teamName;
     if (description) team.description = description;
     if (requiredSkills) team.requiredSkills = requiredSkills;
     if (maxMembers) team.maxMembers = Number(maxMembers);
     if (status) team.status = status;
+    if (startDate !== undefined) team.startDate = startDate ? new Date(startDate) : null;
+    if (endDate !== undefined) team.endDate = endDate ? new Date(endDate) : null;
+    const finalRegDeadline = registrationDeadline !== undefined ? registrationDeadline : registrationEndDate;
+    if (finalRegDeadline !== undefined) team.registrationDeadline = finalRegDeadline ? new Date(finalRegDeadline) : null;
 
     await team.save();
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Search, ChevronDown, Users, Check, Plus, Sparkles, Filter } from "lucide-react";
+import { Search, ChevronDown, Users, Check, Plus, Sparkles, Filter, Calendar } from "lucide-react";
 import { getTeamsApi, searchTeamsApi, getRecommendedTeamsApi, sendJoinRequestApi } from "../services/api";
+import { formatDate } from "../utils/dateUtils";
 
 export default function FindTeams() {
   const navigate = useNavigate();
@@ -228,6 +229,20 @@ export default function FindTeams() {
                             : "bg-gray-100 text-gray-600 border-gray-200"
                             }`}>
                             {team.status}
+                          </span>
+                        )}
+                        {(team.startDate || team.endDate) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-purple-600" />
+                            {team.startDate ? formatDate(team.startDate) : ""}
+                            {team.startDate && team.endDate ? " - " : ""}
+                            {team.endDate ? formatDate(team.endDate) : ""}
+                          </span>
+                        )}
+                        {team.registrationDeadline && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-amber-600" />
+                            Reg Closes: {formatDate(team.registrationDeadline)}
                           </span>
                         )}
                       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Users, ArrowLeft, PlusCircle, AlertCircle, Trophy } from "lucide-react";
+import { Users, ArrowLeft, PlusCircle, AlertCircle, Trophy, Calendar } from "lucide-react";
 import { createTeamApi } from "../services/api";
 
 export default function CreateTeam() {
@@ -9,6 +9,9 @@ export default function CreateTeam() {
 
   const [name, setName] = useState("");
   const [hackathonName, setHackathonName] = useState("");
+  const [registrationDeadline, setRegistrationDeadline] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
   const [requiredSkills, setRequiredSkills] = useState("");
   const [maxMembers, setMaxMembers] = useState(4);
@@ -27,6 +30,16 @@ export default function CreateTeam() {
       return;
     }
 
+    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
+      setErrorMsg("End date cannot be earlier than start date");
+      return;
+    }
+
+    if (registrationDeadline && startDate && new Date(registrationDeadline) > new Date(startDate)) {
+      setErrorMsg("Registration end date should not be after hackathon start date");
+      return;
+    }
+
     setLoading(true);
     setErrorMsg("");
 
@@ -34,6 +47,9 @@ export default function CreateTeam() {
       const payload = {
         name: name.trim(),
         hackathonName: hackathonName.trim(),
+        registrationDeadline: registrationDeadline || null,
+        startDate: startDate || null,
+        endDate: endDate || null,
         description: description.trim(),
         requiredSkills: requiredSkills
           .split(",")
@@ -129,6 +145,66 @@ export default function CreateTeam() {
               <p className="text-[11px] text-gray-400 mt-1">
                 Enter the name of the hackathon or event your team is competing in.
               </p>
+            </div>
+
+            {/* Timeline: Registration End Date, Start Date & End Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Registration End Date
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={registrationDeadline}
+                    max={startDate || undefined}
+                    onChange={(e) => setRegistrationDeadline(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-xl pl-9 pr-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Last date to apply / join.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Start Date
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={startDate}
+                    min={registrationDeadline || undefined}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-xl pl-9 pr-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  When hackathon starts.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  End Date
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+                  <input
+                    type="date"
+                    value={endDate}
+                    min={startDate || undefined}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-xl pl-9 pr-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-[#A54100] focus:border-[#A54100]"
+                  />
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">
+                  Final submission date.
+                </p>
+              </div>
             </div>
 
             {/* Description */}

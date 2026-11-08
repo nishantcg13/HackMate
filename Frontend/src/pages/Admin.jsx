@@ -18,6 +18,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { getUsersApi, getTeamsApi, getReceivedRequestsApi, deleteTeamApi, loginApi } from "../services/api";
+import { formatDate } from "../utils/dateUtils";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function Admin() {
               role: u.role || "USER",
               skills: u.skills || [],
               status: "Active",
-              joined: new Date(u.createdAt || Date.now()).toLocaleDateString(),
+              joined: formatDate(u.createdAt || Date.now()),
             }))
           );
         }

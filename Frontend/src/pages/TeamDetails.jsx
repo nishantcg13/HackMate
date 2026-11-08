@@ -12,6 +12,7 @@ import {
   LogOut,
   AlertCircle,
   X,
+  Calendar,
 } from "lucide-react";
 import {
   getTeamByIdApi,
@@ -22,6 +23,7 @@ import {
   leaveTeamApi,
   removeTeamMemberApi,
 } from "../services/api";
+import { formatDate } from "../utils/dateUtils";
 
 export default function TeamDetails() {
   const { id } = useParams();
@@ -41,6 +43,9 @@ export default function TeamDetails() {
   const [editSkills, setEditSkills] = useState("");
   const [editMaxMembers, setEditMaxMembers] = useState(4);
   const [editStatus, setEditStatus] = useState("OPEN");
+  const [editRegistrationDeadline, setEditRegistrationDeadline] = useState("");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
 
   // Transfer Leadership Modal
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -70,6 +75,9 @@ export default function TeamDetails() {
         setEditSkills((res.team.requiredSkills || []).join(", "));
         setEditMaxMembers(res.team.maxMembers || 4);
         setEditStatus(res.team.status || "OPEN");
+        setEditRegistrationDeadline(res.team.registrationDeadline ? res.team.registrationDeadline.split("T")[0] : "");
+        setEditStartDate(res.team.startDate ? res.team.startDate.split("T")[0] : "");
+        setEditEndDate(res.team.endDate ? res.team.endDate.split("T")[0] : "");
       } else {
         setErrorMsg("Team not found");
       }
@@ -133,6 +141,9 @@ export default function TeamDetails() {
           .filter(Boolean),
         maxMembers: Number(editMaxMembers),
         status: editStatus,
+        registrationDeadline: editRegistrationDeadline || null,
+        startDate: editStartDate || null,
+        endDate: editEndDate || null,
       });
       setIsEditing(false);
       showNotification("Team updated successfully! (API #8)");
@@ -351,6 +362,29 @@ export default function TeamDetails() {
                 </span>
                 <span className="font-semibold text-gray-700 text-xs">
                   {team.hackathon?.title || team.hackathon?.name || "Hackathon 2026"}
+                </span>
+              </div>
+            )}
+            {team.registrationDeadline && (
+              <div>
+                <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider">
+                  Registration Closes
+                </span>
+                <span className="font-semibold text-amber-700 text-xs flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-amber-600" />
+                  {formatDate(team.registrationDeadline)}
+                </span>
+              </div>
+            )}
+            {(team.startDate || team.endDate) && (
+              <div>
+                <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider">
+                  Duration
+                </span>
+                <span className="font-semibold text-gray-700 text-xs flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-purple-600" />
+                  {team.startDate ? formatDate(team.startDate) : "TBA"} -{" "}
+                  {team.endDate ? formatDate(team.endDate) : "TBA"}
                 </span>
               </div>
             )}
@@ -578,6 +612,47 @@ export default function TeamDetails() {
                       <option value="OPEN">OPEN</option>
                       <option value="CLOSED">CLOSED</option>
                     </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Reg. End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editRegistrationDeadline}
+                      max={editStartDate || undefined}
+                      onChange={(e) => setEditRegistrationDeadline(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editStartDate}
+                      min={editRegistrationDeadline || undefined}
+                      onChange={(e) => setEditStartDate(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={editEndDate}
+                      min={editStartDate || undefined}
+                      onChange={(e) => setEditEndDate(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-2.5 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-purple-600"
+                    />
                   </div>
                 </div>
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Users, Eye, Plus, Sparkles } from "lucide-react";
+import { Users, Eye, Plus, Sparkles, Calendar } from "lucide-react";
 import { getMyTeamsApi } from "../services/api";
+import { formatDate } from "../utils/dateUtils";
 
 export default function MyTeams() {
   const navigate = useNavigate();
@@ -105,6 +106,20 @@ export default function MyTeams() {
                         >
                           {roleLabel}
                         </span>
+                        {(team.startDate || team.endDate) && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-purple-600" />
+                            {team.startDate ? formatDate(team.startDate) : ""}
+                            {team.startDate && team.endDate ? " - " : ""}
+                            {team.endDate ? formatDate(team.endDate) : ""}
+                          </span>
+                        )}
+                        {team.registrationDeadline && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-amber-600" />
+                            Reg Closes: {formatDate(team.registrationDeadline)}
+                          </span>
+                        )}
                       </div>
 
                       <p className="text-xs text-gray-500 mt-0.5 mb-2.5">
