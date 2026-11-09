@@ -186,9 +186,9 @@ export default function JoinRequests() {
                 return (
                   <div
                     key={req._id}
-                    className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-gray-300 transition-colors"
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3.5">
                       <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
                         {initial}
                       </div>
@@ -207,7 +207,7 @@ export default function JoinRequests() {
                           {skills.map((skill, idx) => (
                             <span
                               key={idx}
-                              className="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md font-medium border border-purple-100/60"
+                              className="text-[11px] bg-purple-50 text-purple-800 px-2 py-0.5 rounded-md font-medium border border-purple-100"
                             >
                               {skill}
                             </span>
@@ -221,7 +221,7 @@ export default function JoinRequests() {
                       <button
                         type="button"
                         onClick={() => handleAccept(req._id)}
-                        className="bg-[#16A34A] hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+                        className="bg-[#16A34A] hover:bg-green-700 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-2xs"
                       >
                         <Check className="w-3.5 h-3.5" />
                         <span>Accept</span>
@@ -230,7 +230,7 @@ export default function JoinRequests() {
                       <button
                         type="button"
                         onClick={() => handleReject(req._id)}
-                        className="border border-red-300 text-red-600 hover:bg-red-50 text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors"
+                        className="border border-red-300 text-red-600 hover:bg-red-50 text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
                       >
                         <X className="w-3.5 h-3.5" />
                         <span>Reject</span>
