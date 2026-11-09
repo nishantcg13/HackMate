@@ -129,7 +129,7 @@ export default function Teammates() {
 
           <button
             type="submit"
-            className="bg-[#4C1D95] hover:bg-[#3B1578] text-white text-xs font-semibold px-4 py-2 rounded-xl"
+            className="bg-[#2E1065] hover:bg-[#1f0a44] text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shrink-0"
           >
             Search
           </button>
@@ -137,24 +137,24 @@ export default function Teammates() {
 
         {/* Loading state */}
         {loading && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-xs text-gray-500">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-xs text-gray-500">
             Loading developers from database...
           </div>
         )}
 
         {/* Teammates Profile Cards Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {teammates.map((teammate) => (
               <div
                 key={teammate.id}
-                className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:shadow-sm hover:border-purple-200 transition-all"
+                className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between hover:border-gray-300 transition-all"
               >
                 <div>
                   {/* Top: Avatar Circle with Initial */}
-                  <div className="flex items-center gap-3.5 mb-3.5">
+                  <div className="flex items-center gap-3.5 mb-3">
                     <div
-                      className={`w-12 h-12 rounded-full ${teammate.avatarColor} flex items-center justify-center font-bold text-base shrink-0 shadow-2xs`}
+                      className={`w-10 h-10 rounded-full ${teammate.avatarColor} flex items-center justify-center font-bold text-sm shrink-0`}
                     >
                       {teammate.initial}
                     </div>
@@ -165,14 +165,14 @@ export default function Teammates() {
                       {teammate.email && (
                         <div className="flex items-center gap-1 text-[11px] text-gray-400 mt-0.5">
                           <Mail className="w-3 h-3 shrink-0" />
-                          <span className="truncate max-w-[180px]">{teammate.email}</span>
+                          <span className="truncate max-w-[170px]">{teammate.email}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Role / Bio */}
-                  <p className="text-xs text-gray-600 font-normal leading-relaxed mt-1 mb-4 line-clamp-2">
+                  <p className="text-xs text-gray-600 font-normal leading-relaxed mt-1 mb-3 line-clamp-2">
                     {teammate.role}
                   </p>
 
@@ -185,7 +185,7 @@ export default function Teammates() {
                       {teammate.skills.map((skill, idx) => (
                         <span
                           key={idx}
-                          className="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md font-medium border border-purple-100/60"
+                          className="text-[11px] bg-purple-50 text-purple-800 px-2 py-0.5 rounded-md font-medium border border-purple-100"
                         >
                           {skill}
                         </span>
@@ -199,7 +199,7 @@ export default function Teammates() {
         )}
 
         {!loading && teammates.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center space-y-2">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center space-y-2">
             <Users className="w-8 h-8 text-gray-300 mx-auto" />
             <p className="text-sm font-semibold text-gray-700">No teammates found</p>
             <p className="text-xs text-gray-400">

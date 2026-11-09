@@ -69,7 +69,7 @@ export default function Admin() {
               name: t.name,
               description: t.description || "Hackathon Project Team",
               leader: t.leader?.name || "Team Leader",
-              currentMembers: 1,
+              currentMembers: t.currentMembers ?? t.membersCount ?? 1,
               maxMembers: t.maxMembers || 4,
               skills: t.requiredSkills || [],
               requiredSkills: t.requiredSkills || [],
@@ -178,11 +178,11 @@ export default function Admin() {
   if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white border border-gray-200 rounded-3xl max-w-md w-full p-8 sm:p-10 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-xl max-w-md w-full p-8 shadow-xs">
           
           {/* Logo & Header */}
           <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-900 mx-auto flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-lg bg-purple-100 text-purple-900 mx-auto flex items-center justify-center mb-3">
               <ShieldCheck className="w-7 h-7 text-[#A54100]" />
             </div>
             <h1 className="text-xl font-extrabold tracking-wider text-[#2E1065]">
@@ -648,7 +648,16 @@ export default function Admin() {
                   <tbody className="divide-y divide-gray-100 text-gray-700">
                     {filteredTeams.map((t) => (
                       <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-3 px-4 font-bold text-gray-900">{t.name}</td>
+                        <td className="py-3 px-4 font-bold text-gray-900">
+                          <Link
+                            to={`/teams/${t.id}`}
+                            className="hover:text-purple-700 hover:underline flex items-center gap-1.5"
+                            title="View team details & members"
+                          >
+                            <span>{t.name}</span>
+                            <ExternalLink className="w-3 h-3 text-gray-400" />
+                          </Link>
+                        </td>
                         <td className="py-3 px-4 font-medium text-purple-900">{t.leader}</td>
                         <td className="py-3 px-4">
                           <span className="bg-purple-50 text-purple-800 font-semibold px-2 py-0.5 rounded-md text-[11px] border border-purple-100">

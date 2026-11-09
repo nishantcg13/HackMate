@@ -22,6 +22,7 @@ import {
   sendJoinRequestApi,
   leaveTeamApi,
   removeTeamMemberApi,
+  getSentRequestsApi,
 } from "../services/api";
 import { formatDate } from "../utils/dateUtils";
 
@@ -31,6 +32,7 @@ export default function TeamDetails() {
 
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
+  const [isServerMember, setIsServerMember] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -59,7 +61,7 @@ export default function TeamDetails() {
       return {};
     }
   })();
-  const currentUserId = loggedInUser?._id || loggedInUser?.id;
+  const currentUserId = (loggedInUser?._id || loggedInUser?.id)?.toString();
   const isAdmin = loggedInUser?.role === "ADMIN";
 
   const fetchTeamData = async () => {
@@ -70,6 +72,9 @@ export default function TeamDetails() {
       if (res?.team) {
         setTeam(res.team);
         setMembers(res.members || []);
+        if (res.isUserMember !== undefined) {
+          setIsServerMember(Boolean(res.isUserMember));
+        }
         setEditName(res.team.name || "");
         setEditDesc(res.team.description || "");
         setEditSkills((res.team.requiredSkills || []).join(", "));
@@ -78,6 +83,24 @@ export default function TeamDetails() {
         setEditRegistrationDeadline(res.team.registrationDeadline ? res.team.registrationDeadline.split("T")[0] : "");
         setEditStartDate(res.team.startDate ? res.team.startDate.split("T")[0] : "");
         setEditEndDate(res.team.endDate ? res.team.endDate.split("T")[0] : "");
+
+        // Check if current user has an active pending request for this team
+        const token = localStorage.getItem("token");
+        if (token) {
+          try {
+            const sentRes = await getSentRequestsApi();
+            if (sentRes?.data && Array.isArray(sentRes.data)) {
+              const hasPending = sentRes.data.some(
+                (r) =>
+                  r.status === "Pending" &&
+                  (r.team?._id || r.team || r.teamId)?.toString() === id?.toString()
+              );
+              setRequested(hasPending);
+            }
+          } catch {
+            // quiet catch
+          }
+        }
       } else {
         setErrorMsg("Team not found");
       }
@@ -97,20 +120,29 @@ export default function TeamDetails() {
     setTimeout(() => setSuccessMsg(""), 4000);
   };
 
-  const isLeader =
+  const isLeader = Boolean(
     team &&
-    currentUserId &&
-    (team.leader?._id === currentUserId ||
-      team.leader === currentUserId ||
-      team.leaderId === currentUserId);
+      currentUserId &&
+      (team.leader?._id?.toString() === currentUserId ||
+        team.leader?.toString() === currentUserId ||
+        team.leaderId?.toString() === currentUserId)
+  );
 
   const canManage = isLeader || isAdmin;
 
   // Check if current user is already an accepted member
-  const isMember = members.some(
-    (m) =>
-      (m.user?._id || m.user || m.userId?._id || m.userId)?.toString() ===
-      currentUserId?.toString()
+  const isMember = Boolean(
+    isServerMember ||
+      team?.isMember ||
+      isLeader ||
+      members.some((m) => {
+        const mId =
+          m.user?._id?.toString() ||
+          (typeof m.user === "string" ? m.user : m.user?.toString()) ||
+          m.userId?._id?.toString() ||
+          (typeof m.userId === "string" ? m.userId : m.userId?.toString());
+        return Boolean(mId && currentUserId && mId === currentUserId);
+      })
   );
 
   // Handle Request to Join
@@ -119,12 +151,33 @@ export default function TeamDetails() {
       navigate("/login");
       return;
     }
+    if (isLeader || isMember) {
+      showNotification("You are already a member of this team!");
+      return;
+    }
     setRequested(true);
     try {
       await sendJoinRequestApi(id, "Hi, I want to join your team!");
       showNotification("Join request sent successfully!");
     } catch (err) {
-      setErrorMsg(err?.response?.data?.message || "Error sending request");
+      const errMsg = err?.response?.data?.message || err?.message || "";
+      if (
+        errMsg.toLowerCase().includes("already a member") ||
+        errMsg.toLowerCase().includes("already member")
+      ) {
+        setIsServerMember(true);
+        showNotification("You are already a member of this team!");
+        fetchTeamData();
+      } else if (
+        err?.response?.status === 409 ||
+        errMsg.toLowerCase().includes("already have a pending request")
+      ) {
+        setRequested(true);
+        showNotification("You already have a pending join request for this team.");
+      } else {
+        setRequested(false);
+        setErrorMsg(errMsg || "Error sending request");
+      }
     }
   };
 
@@ -304,17 +357,17 @@ export default function TeamDetails() {
         )}
 
         {/* Team Header Card */}
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-purple-100/70 text-purple-700 flex items-center justify-center shrink-0">
-              <Users className="w-7 h-7" />
+            <div className="w-12 h-12 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center shrink-0 font-bold">
+              <Users className="w-6 h-6" />
             </div>
 
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-xl font-bold text-gray-900">{team.name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">{team.name}</h1>
                 <span
-                  className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold border ${
+                  className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border ${
                     team.status === "OPEN"
                       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                       : "bg-gray-100 text-gray-600 border-gray-200"
@@ -323,14 +376,14 @@ export default function TeamDetails() {
                   {team.status || "OPEN"}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1 mb-3">{team.description}</p>
+              <p className="text-xs text-gray-500 mt-1 mb-2.5">{team.description}</p>
 
               {/* Skill Badges */}
               <div className="flex flex-wrap gap-1.5">
                 {skills.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="text-[11px] bg-purple-50 text-purple-700 px-2.5 py-0.5 rounded-md font-medium border border-purple-100"
+                    className="text-[11px] bg-purple-50 text-purple-800 px-2 py-0.5 rounded-md font-medium border border-purple-100"
                   >
                     {skill}
                   </span>
@@ -340,7 +393,7 @@ export default function TeamDetails() {
           </div>
 
           {/* Right Meta Info in Header Card */}
-          <div className="bg-purple-50/40 border border-purple-100/60 rounded-xl p-4 min-w-[200px] space-y-2 text-xs">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 min-w-[200px] space-y-2 text-xs">
             <div>
               <span className="text-gray-400 block text-[10px] uppercase font-bold tracking-wider">
                 Team Leader
@@ -361,7 +414,7 @@ export default function TeamDetails() {
                   Hackathon
                 </span>
                 <span className="font-semibold text-gray-700 text-xs">
-                  {team.hackathon?.title || team.hackathon?.name || "Hackathon 2026"}
+                  {team.hackathon?.title || team.hackathon?.name || "Hackathon"}
                 </span>
               </div>
             )}
@@ -395,9 +448,9 @@ export default function TeamDetails() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Left: Team Members */}
-          <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b pb-3">
-              <h2 className="text-sm font-bold text-gray-900">
+              <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
                 Team Members ({members.length})
               </h2>
               {isMember && !isLeader && (
@@ -410,7 +463,7 @@ export default function TeamDetails() {
               )}
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {members.map((member, idx) => {
                 const memberUser = member.user || member.userId || {};
                 const mId = memberUser._id || memberUser.id;
@@ -420,7 +473,7 @@ export default function TeamDetails() {
                 return (
                   <div
                     key={idx}
-                    className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-800 font-bold text-xs flex items-center justify-center shrink-0">
@@ -432,7 +485,7 @@ export default function TeamDetails() {
                             {mName}
                           </span>
                           {isMemberLeader && (
-                            <span className="text-[10px] bg-green-50 text-green-700 font-semibold px-2 py-0.5 rounded-full border border-green-200">
+                            <span className="text-[10px] bg-green-50 text-green-700 font-semibold px-2 py-0.5 rounded-md border border-green-200">
                               Leader
                             </span>
                           )}
@@ -466,9 +519,9 @@ export default function TeamDetails() {
           </div>
 
           {/* Right: Required Skills & Action */}
-          <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs flex flex-col justify-between space-y-6">
             <div>
-              <h2 className="text-sm font-bold text-gray-900 mb-3">
+              <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-3">
                 Required Skills
               </h2>
 
@@ -477,7 +530,7 @@ export default function TeamDetails() {
                   skills.map((reqSkill, idx) => (
                     <span
                       key={idx}
-                      className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-lg font-medium border border-purple-100"
+                      className="text-xs bg-purple-50 text-purple-800 px-2.5 py-1 rounded-md font-medium border border-purple-100"
                     >
                       {reqSkill}
                     </span>
@@ -493,11 +546,11 @@ export default function TeamDetails() {
             {/* Action buttons based on user relationship */}
             <div>
               {isLeader ? (
-                <div className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-center bg-green-50 text-green-700 border border-green-200">
+                <div className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold text-center bg-green-50 text-green-700 border border-green-200">
                   You are the Leader of this Team
                 </div>
               ) : isMember ? (
-                <div className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-center bg-blue-50 text-blue-700 border border-blue-200">
+                <div className="w-full py-2.5 px-4 rounded-lg text-xs font-semibold text-center bg-blue-50 text-blue-700 border border-blue-200">
                   You are a Member of this Team
                 </div>
               ) : (
@@ -505,7 +558,7 @@ export default function TeamDetails() {
                   type="button"
                   onClick={handleRequestJoin}
                   disabled={requested || team.status === "CLOSED"}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
+                  className={`w-full py-2.5 px-4 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
                     requested
                       ? "bg-green-600 text-white cursor-default"
                       : team.status === "CLOSED"
@@ -533,7 +586,7 @@ export default function TeamDetails() {
         {/* Modal: Edit Team (API #8) */}
         {isEditing && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="text-sm font-bold text-gray-900">
                   Edit Team Information (API #8)
@@ -679,7 +732,7 @@ export default function TeamDetails() {
         {/* Modal: Transfer Leadership (API #11) */}
         {showTransferModal && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b pb-3">
                 <h3 className="text-sm font-bold text-gray-900">
                   Transfer Leadership (API #11)

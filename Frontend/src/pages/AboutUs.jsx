@@ -81,84 +81,65 @@ export default function AboutUs() {
     <div className="min-h-screen bg-gray-50/50 flex flex-col">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-10 space-y-12">
-        {/* 1. Hero Section */}
-        <section className="bg-white border border-gray-200/80 rounded-3xl p-8 sm:p-12 shadow-xs relative overflow-hidden text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-4 max-w-xl z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>About HackMate</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
-              Empowering Students to Build Winning Hackathon Teams
+      <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-8">
+        {/* 1. Hero Section - Solid Clean Card */}
+        <section className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8 shadow-sm">
+          <div className="max-w-2xl space-y-3">
+            <span className="text-xs uppercase font-bold tracking-wider text-purple-800">
+              About The Project
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              HackMate: Student Hackathon Team Formation Platform
             </h1>
-            <p className="text-sm text-gray-500 leading-relaxed font-normal">
-              HackMate is a collaborative team-building platform built for developers, designers, and innovators. We bridge the gap between talented individuals and ambitious hackathon projects, ensuring nobody has to hack alone.
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed font-normal">
+              HackMate is a web-based platform built to help students and developers connect with peers, discover complementary skill sets, and form balanced hackathon teams.
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-2 justify-center md:justify-start">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 to="/teams"
-                className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors shadow-2xs"
+                className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
               >
-                <span>Explore Teams</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Browse Teams</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
               <Link
                 to="/teammates"
-                className="bg-purple-50 text-purple-800 border border-purple-200 hover:bg-purple-100 text-xs font-semibold px-5 py-2.5 rounded-xl transition-colors"
+                className="border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
               >
                 Find Teammates
               </Link>
             </div>
           </div>
-
-          <div className="relative z-10 flex-shrink-0">
-            <div className="w-64 h-48 sm:w-80 sm:h-56 rounded-3xl bg-gradient-to-tr from-purple-100 via-indigo-50 to-amber-50 p-3 border border-purple-100 shadow-xs flex items-center justify-center">
-              <img
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&auto=format&fit=crop&q=80"
-                alt="Hackathon Team Collaboration"
-                className="w-full h-full object-cover rounded-2xl shadow-2xs"
-              />
-            </div>
-          </div>
-
-          <div className="absolute -right-16 -top-16 w-64 h-64 bg-purple-100/60 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-amber-100/50 rounded-full blur-3xl pointer-events-none" />
         </section>
 
         {/* 2. Mission & Vision */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
-              <Target className="w-5 h-5" />
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-2.5">
+            <div className="w-9 h-9 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+              <Target className="w-4 h-4" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">Our Mission</h2>
+            <h2 className="text-base font-bold text-gray-900">Our Mission</h2>
             <p className="text-xs text-gray-600 leading-relaxed">
-              To eliminate the frustration of last-minute team scrambles. We empower student hackers to discover compatible partners with complementary skillsets—pairing frontend wizards with backend architects and UI/UX designers for well-rounded squads.
+              To eliminate the difficulty of finding reliable hackathon teammates. We help developers discover compatible partners with complementary skills—pairing frontend developers with backend programmers and UI/UX designers.
             </p>
           </div>
 
-          <div className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-8 shadow-xs space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-              <Rocket className="w-5 h-5" />
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-2.5">
+            <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+              <Rocket className="w-4 h-4" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">Our Vision</h2>
+            <h2 className="text-base font-bold text-gray-900">Our Vision</h2>
             <p className="text-xs text-gray-600 leading-relaxed">
-              A global collegiate innovation network where every aspiring developer can find their dream team, transform creative ideas into production-ready prototypes, and launch successful open-source projects or tech startups.
+              A collaborative network where every student developer can easily find the right teammates, build innovative software prototypes, and participate effectively in hackathon competitions.
             </p>
           </div>
         </section>
 
         {/* 3. Key Capabilities */}
-        <section className="space-y-6">
-          <div className="text-center space-y-1">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Why Choose HackMate?
-            </h2>
-            <p className="text-xs text-gray-500 max-w-lg mx-auto">
-              Everything you need to discover teammates, coordinate project ideas, and track hackathon timelines in one place.
-            </p>
-          </div>
+        <section className="space-y-4">
+          <h2 className="text-lg font-bold text-gray-900">
+            Core Features
+          </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {features.map((item, idx) => {
@@ -166,14 +147,12 @@ export default function AboutUs() {
               return (
                 <div
                   key={idx}
-                  className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs hover:border-purple-200 hover:shadow-sm transition-all space-y-3"
+                  className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-2"
                 >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold border ${item.color}`}
-                  >
-                    <Icon className="w-5 h-5" />
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 text-gray-800 flex items-center justify-center font-bold">
+                    <Icon className="w-4 h-4" />
                   </div>
-                  <h3 className="text-sm font-bold text-gray-900">{item.title}</h3>
+                  <h3 className="text-xs font-bold text-gray-900">{item.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{item.desc}</p>
                 </div>
               );
@@ -182,23 +161,23 @@ export default function AboutUs() {
         </section>
 
         {/* 4. How It Works */}
-        <section className="bg-white border border-gray-200/80 rounded-3xl p-8 sm:p-10 shadow-xs space-y-8">
-          <div className="text-center space-y-1">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              How HackMate Works
+        <section className="bg-white border border-gray-200 rounded-xl p-6 sm:p-7 shadow-sm space-y-6">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">
+              How the System Works
             </h2>
-            <p className="text-xs text-gray-500">
-              Get from solo developer to fully staffed hackathon team in 4 simple steps.
+            <p className="text-xs text-gray-500 mt-0.5">
+              Four simple steps from creating a profile to joining a hackathon team.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {steps.map((s, idx) => (
-              <div key={idx} className="relative space-y-2">
-                <span className="text-3xl font-black text-purple-200 block">
-                  {s.step}
+              <div key={idx} className="border-t-2 border-purple-800 pt-3 space-y-1">
+                <span className="text-xs font-bold text-purple-800 block">
+                  Step {s.step}
                 </span>
-                <h3 className="text-sm font-bold text-gray-900">{s.title}</h3>
+                <h3 className="text-xs font-bold text-gray-900">{s.title}</h3>
                 <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
               </div>
             ))}
@@ -206,60 +185,56 @@ export default function AboutUs() {
         </section>
 
         {/* 5. Tech Stack & Architecture */}
-        <section className="bg-[#FAF9F6] border border-gray-200/80 rounded-3xl p-8 sm:p-10 shadow-xs space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200/60 pb-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Code2 className="w-5 h-5 text-purple-700" />
-                <h2 className="text-lg font-bold text-gray-900">
-                  Built on Modern Web Technologies
-                </h2>
-              </div>
+        <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">
+                Technology Stack
+              </h2>
               <p className="text-xs text-gray-500">
-                Robust, fast, and scalable MERN stack architecture designed for high availability.
+                Full-stack MERN architecture with RESTful API integration.
               </p>
             </div>
-            <div className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full text-[11px] font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Full Stack MERN</span>
-            </div>
+            <span className="text-[11px] font-semibold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-200 self-start sm:self-auto">
+              MERN Stack
+            </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {techStack.map((tech, idx) => (
               <div
                 key={idx}
-                className="bg-white border border-gray-200 rounded-xl p-3 text-center space-y-1 shadow-2xs"
+                className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center space-y-0.5"
               >
                 <p className="text-xs font-bold text-gray-900">{tech.name}</p>
-                <p className="text-[10px] text-gray-400">{tech.category}</p>
+                <p className="text-[10px] text-gray-500">{tech.category}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 6. Call to Action Banner */}
-        <section className="bg-gradient-to-r from-[#2E1065] to-[#4C1D95] rounded-3xl p-8 sm:p-10 text-white text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 shadow-md">
-          <div className="space-y-1.5 max-w-lg">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-              Ready to find your hackathon crew?
+        {/* 6. Call to Action Banner - Solid Style */}
+        <section className="bg-[#2E1065] rounded-xl p-6 sm:p-7 text-white flex flex-col sm:flex-row items-center justify-between gap-5 shadow-sm">
+          <div className="space-y-1 text-center sm:text-left">
+            <h2 className="text-lg font-bold">
+              Ready to collaborate?
             </h2>
-            <p className="text-xs text-purple-200 font-normal">
-              Join students already finding teammates, building cool projects, and winning hackathons.
+            <p className="text-xs text-purple-200">
+              Browse existing open teams or register your own hackathon team.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <Link
               to="/create-team"
-              className="bg-white text-purple-900 hover:bg-gray-100 text-xs font-bold px-5 py-2.5 rounded-xl transition-colors shadow-xs"
+              className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
             >
               Create Team
             </Link>
             <Link
               to="/dashboard"
-              className="border border-purple-300 text-white hover:bg-white/10 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors"
+              className="border border-purple-400 text-white hover:bg-white/10 text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
             >
-              Go to Dashboard
+              Dashboard
             </Link>
           </div>
         </section>
@@ -283,6 +258,9 @@ export default function AboutUs() {
             </Link>
             <Link to="/my-teams" className="hover:text-gray-900 transition-colors">
               My Teams
+            </Link>
+            <Link to="/contact" className="hover:text-gray-900 transition-colors">
+              Contact
             </Link>
           </div>
         </footer>

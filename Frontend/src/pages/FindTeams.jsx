@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Search, Users, Check, Plus, Sparkles, Filter, Calendar } from "lucide-react";
-import { getTeamsApi, searchTeamsApi, getRecommendedTeamsApi, sendJoinRequestApi } from "../services/api";
+import { Search, Users, Check, Plus, Calendar, Star } from "lucide-react";
+import {
+  getTeamsApi,
+  searchTeamsApi,
+  getRecommendedTeamsApi,
+  sendJoinRequestApi,
+  getSentRequestsApi,
+  getMyTeamsApi,
+} from "../services/api";
 import { formatDate } from "../utils/dateUtils";
 
 export default function FindTeams() {
@@ -11,6 +18,7 @@ export default function FindTeams() {
   const [searchName, setSearchName] = useState("");
   const [viewMode, setViewMode] = useState("all"); // 'all' or 'recommended'
   const [requestedTeamIds, setRequestedTeamIds] = useState([]);
+  const [myMemberTeamIds, setMyMemberTeamIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [requestMsg, setRequestMsg] = useState("");
 
@@ -23,6 +31,34 @@ export default function FindTeams() {
     }
   })();
   const currentUserId = loggedInUser?._id || loggedInUser?.id;
+
+  const fetchSentRequestsAndTeams = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const [sentRes, myTeamsRes] = await Promise.allSettled([
+        getSentRequestsApi(),
+        getMyTeamsApi(),
+      ]);
+
+      if (sentRes.status === "fulfilled" && sentRes.value?.data) {
+        const pendingIds = sentRes.value.data
+          .filter((r) => r.status === "Pending")
+          .map((r) => (r.team?._id || r.team || r.teamId)?.toString())
+          .filter(Boolean);
+        setRequestedTeamIds(pendingIds);
+      }
+
+      if (myTeamsRes.status === "fulfilled" && myTeamsRes.value?.teams) {
+        const memberIds = myTeamsRes.value.teams
+          .map((t) => (t._id || t.id)?.toString())
+          .filter(Boolean);
+        setMyMemberTeamIds(memberIds);
+      }
+    } catch (err) {
+      console.error("Error fetching sent requests or user teams:", err);
+    }
+  };
 
   const fetchTeams = async (searchTerm = searchName) => {
     try {
@@ -47,6 +83,7 @@ export default function FindTeams() {
 
   useEffect(() => {
     fetchTeams();
+    fetchSentRequestsAndTeams();
   }, [viewMode]);
 
   const handleSearchSubmit = (e) => {
@@ -68,15 +105,40 @@ export default function FindTeams() {
       navigate("/login");
       return;
     }
-    if (requestedTeamIds.includes(teamId)) return;
+    const teamIdStr = teamId?.toString();
+    if (requestedTeamIds.includes(teamIdStr)) return;
+    if (myMemberTeamIds.map(String).includes(teamIdStr)) {
+      setRequestMsg("You are already a member of this team!");
+      setTimeout(() => setRequestMsg(""), 3000);
+      return;
+    }
 
     try {
-      setRequestedTeamIds((prev) => [...prev, teamId]);
+      setRequestedTeamIds((prev) => [...prev, teamIdStr]);
       await sendJoinRequestApi(teamId, "I would like to join this team.");
       setRequestMsg("Request sent successfully!");
       setTimeout(() => setRequestMsg(""), 3000);
     } catch (err) {
       console.error("Team join request error:", err?.response?.data?.message || err?.message);
+      const errMsg = err?.response?.data?.message || err?.message || "";
+      if (
+        errMsg.toLowerCase().includes("already a member") ||
+        errMsg.toLowerCase().includes("already member")
+      ) {
+        setMyMemberTeamIds((prev) => (prev.includes(teamIdStr) ? prev : [...prev, teamIdStr]));
+        setRequestedTeamIds((prev) => prev.filter((id) => id !== teamIdStr));
+        setRequestMsg("You are already a member of this team!");
+        setTimeout(() => setRequestMsg(""), 3000);
+      } else if (
+        err?.response?.status === 409 ||
+        errMsg.toLowerCase().includes("already have a pending request")
+      ) {
+        setRequestedTeamIds((prev) =>
+          prev.includes(teamIdStr) ? prev : [...prev, teamIdStr]
+        );
+      } else {
+        setRequestedTeamIds((prev) => prev.filter((id) => id !== teamIdStr));
+      }
     }
   };
 
@@ -119,23 +181,25 @@ export default function FindTeams() {
           <button
             type="button"
             onClick={() => setViewMode("all")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${viewMode === "all"
-              ? "bg-[#2E1065] text-white"
-              : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-              }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              viewMode === "all"
+                ? "bg-[#2E1065] text-white"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+            }`}
           >
             All Teams
           </button>
           <button
             type="button"
             onClick={() => setViewMode("recommended")}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${viewMode === "recommended"
-              ? "bg-purple-700 text-white"
-              : "bg-white text-purple-700 border border-purple-200 hover:bg-purple-50"
-              }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+              viewMode === "recommended"
+                ? "bg-purple-800 text-white"
+                : "bg-white text-purple-800 border border-purple-200 hover:bg-purple-50"
+            }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Recommended for You</span>
+            <Star className="w-3.5 h-3.5" />
+            <span>Recommended</span>
           </button>
         </div>
 
@@ -149,13 +213,13 @@ export default function FindTeams() {
               placeholder="Search by team name, skill, or keyword..."
               value={searchName}
               onChange={handleSearchChange}
-              className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:border-purple-600 shadow-2xs"
+              className="w-full bg-white border border-gray-200 rounded-lg pl-10 pr-4 py-2 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-700 focus:border-purple-700 shadow-2xs"
             />
           </div>
 
           <button
             type="submit"
-            className="bg-[#4C1D95] hover:bg-[#3B1578] text-white text-xs font-semibold px-5 py-2 rounded-xl transition-colors shadow-2xs shrink-0"
+            className="bg-[#2E1065] hover:bg-[#1f0a44] text-white text-xs font-semibold px-5 py-2 rounded-lg transition-colors shadow-2xs shrink-0"
           >
             Search
           </button>
@@ -163,21 +227,22 @@ export default function FindTeams() {
 
         {/* Teams List */}
         {loading ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-xs text-gray-500">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-xs text-gray-500">
             Loading teams from database...
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {teams.map((team) => {
-              const teamId = team._id || team.id;
-              const isRequested = requestedTeamIds.includes(teamId);
+              const teamId = (team._id || team.id)?.toString();
+              const isRequested = requestedTeamIds.map(String).includes(teamId);
+              const isMember = Boolean(team.isMember || myMemberTeamIds.map(String).includes(teamId));
 
               // Check if user is the leader of this team
               const isLeader =
                 currentUserId &&
-                (team.leader?._id === currentUserId ||
-                  team.leader === currentUserId ||
-                  team.leaderId === currentUserId);
+                (team.leader?._id?.toString() === currentUserId?.toString() ||
+                  team.leader?.toString() === currentUserId?.toString() ||
+                  team.leaderId?.toString() === currentUserId?.toString());
 
               const skills = team.requiredSkills || team.skills || [];
 
@@ -185,21 +250,21 @@ export default function FindTeams() {
                 <div
                   key={teamId}
                   onClick={() => navigate(`/teams/${teamId}`)}
-                  className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-purple-200 hover:shadow-sm transition-all cursor-pointer"
+                  className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-gray-300 transition-all cursor-pointer"
                 >
                   {/* Left: Icon + Info */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-100/70 text-purple-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Users className="w-6 h-6" />
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                      <Users className="w-5 h-5" />
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-gray-900 hover:text-purple-900 transition-colors">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-bold text-gray-900">
                           {team.name}
                         </h3>
                         {team.status && (
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${team.status === "OPEN"
+                          <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border ${team.status === "OPEN"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                             : "bg-gray-100 text-gray-600 border-gray-200"
                             }`}>
@@ -207,7 +272,7 @@ export default function FindTeams() {
                           </span>
                         )}
                         {(team.startDate || team.endDate) && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md font-medium bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
                             <Calendar className="w-3 h-3 text-purple-600" />
                             {team.startDate ? formatDate(team.startDate) : ""}
                             {team.startDate && team.endDate ? " - " : ""}
@@ -215,14 +280,14 @@ export default function FindTeams() {
                           </span>
                         )}
                         {team.registrationDeadline && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
                             <Calendar className="w-3 h-3 text-amber-600" />
                             Reg Closes: {formatDate(team.registrationDeadline)}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-gray-500 mt-0.5 mb-2.5">
+                      <p className="text-xs text-gray-500 mt-1 mb-2">
                         {team.description}
                       </p>
 
@@ -231,7 +296,7 @@ export default function FindTeams() {
                         {skills.map((skill, idx) => (
                           <span
                             key={idx}
-                            className="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md font-medium border border-purple-100/60"
+                            className="text-[11px] bg-purple-50 text-purple-800 px-2 py-0.5 rounded-md font-medium border border-purple-100"
                           >
                             {skill}
                           </span>
@@ -242,20 +307,24 @@ export default function FindTeams() {
 
                   {/* Right: Member Count & Action Button */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                    <span className="text-xs text-purple-700 font-semibold">
+                    <span className="text-xs text-gray-600 font-semibold">
                       Max {team.maxMembers || 4} Members
                     </span>
 
                     {isLeader ? (
-                      <span className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                      <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
                         Your Team (Leader)
+                      </span>
+                    ) : isMember ? (
+                      <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        Member
                       </span>
                     ) : (
                       <button
                         type="button"
                         onClick={(e) => handleRequestJoin(e, teamId)}
                         disabled={isRequested}
-                        className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${isRequested
+                        className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${isRequested
                           ? "bg-green-50 text-green-700 border-green-200 cursor-default"
                           : "bg-white text-[#A54100] border-[#A54100] hover:bg-[#A54100] hover:text-white"
                           }`}
@@ -277,7 +346,7 @@ export default function FindTeams() {
         )}
 
         {!loading && teams.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center space-y-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center space-y-3">
             <Users className="w-8 h-8 text-gray-300 mx-auto" />
             <p className="text-sm font-semibold text-gray-700">No teams found</p>
             <p className="text-xs text-gray-400">
@@ -287,7 +356,7 @@ export default function FindTeams() {
             </p>
             <Link
               to="/create-team"
-              className="inline-flex items-center gap-1.5 bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-xl"
+              className="inline-flex items-center gap-1.5 bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-lg"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create a Team</span>

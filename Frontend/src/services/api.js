@@ -205,4 +205,18 @@ export const getHackathonsApi = async () => {
   return response.data;
 };
 
+// ==========================================
+// 7. CONTACT US APIs
+// ==========================================
+
+export const submitContactApi = async (contactData) => {
+  const response = await api.post("/contact", contactData);
+  return response.data;
+};
+
+export const getAllContactsApi = async () => {
+  const response = await api.get("/contact");
+  return response.data;
+};
+
 export default api;

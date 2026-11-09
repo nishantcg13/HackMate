@@ -53,19 +53,19 @@ export default function Dashboard({ currentUser }) {
       <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
 
         {/* Welcome Banner Card */}
-        <div className="bg-white border border-gray-200/80 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs relative overflow-hidden">
-          <div className="space-y-2 z-10 text-center md:text-left">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-              Welcome, {userName}! <span className="inline-block animate-bounce">👋</span>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-7 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Welcome back, {userName}
             </h1>
-            <p className="text-sm text-gray-500 font-normal max-w-md">
-              Find teammates, join teams, and build your winning hackathon project.
+            <p className="text-xs sm:text-sm text-gray-600 max-w-xl">
+              Connect with developers, join hackathon teams, and manage your project collaboration.
             </p>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2 justify-center md:justify-start">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 to="/create-team"
-                className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-2xs"
+                className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Create a Team</span>
@@ -74,7 +74,7 @@ export default function Dashboard({ currentUser }) {
               {requestsCount > 0 && (
                 <Link
                   to="/requests"
-                  className="bg-purple-50 text-purple-700 border border-purple-200 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 hover:bg-purple-100 transition-colors"
+                  className="bg-purple-50 text-purple-700 border border-purple-200 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-purple-100 transition-colors"
                 >
                   <Bell className="w-3.5 h-3.5" />
                   <span>{requestsCount} Pending Join Requests</span>
@@ -83,78 +83,77 @@ export default function Dashboard({ currentUser }) {
             </div>
           </div>
 
-          {/* Student at laptop illustration */}
-          <div className="relative z-10 flex-shrink-0">
-            <div className="w-40 h-28 sm:w-48 sm:h-32 rounded-2xl bg-gradient-to-tr from-purple-100 to-indigo-50 flex items-center justify-center p-3 border border-purple-100">
-              <img
-                src="https://images.unsplash.com/photo-1531482615713-2afd69097998?w=300&auto=format&fit=crop&q=80"
-                alt="Student with Laptop"
-                className="w-full h-full object-cover rounded-xl shadow-xs"
-              />
+          {/* Quick Metrics Counter Box */}
+          <div className="flex items-center gap-3 self-stretch md:self-auto shrink-0">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center min-w-[90px]">
+              <span className="text-xl font-bold text-gray-900 block">{myTeamsCount}</span>
+              <span className="text-[10px] uppercase font-semibold text-gray-500">My Teams</span>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-center min-w-[90px]">
+              <span className="text-xl font-bold text-purple-800 block">{requestsCount}</span>
+              <span className="text-[10px] uppercase font-semibold text-gray-500">Requests</span>
             </div>
           </div>
-
-          <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-purple-50 rounded-full blur-2xl pointer-events-none" />
         </div>
 
         {/* 3 Large Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-          {/* 1. Find Teammates (Purple Theme) */}
+          {/* 1. Find Teammates (Solid Theme) */}
           <Link
             to="/teammates"
-            className="group bg-[#F5F3FF] hover:bg-[#EDE9FE] border border-purple-100 rounded-2xl p-6 flex items-center justify-between transition-all shadow-xs"
+            className="group bg-white hover:bg-gray-50 border border-gray-200 rounded-xl p-5 flex items-center justify-between transition-colors shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-purple-200/70 text-purple-800 flex items-center justify-center font-bold">
-                <Users className="w-6 h-6" />
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+                <Users className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-base font-bold text-gray-900 group-hover:text-purple-900 transition-colors block">
+                <span className="text-sm font-bold text-gray-900 block">
                   Find Teammates
                 </span>
                 <span className="text-[11px] text-gray-500">Discover skilled developers</span>
               </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-purple-700 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
           </Link>
 
-          {/* 2. Find Teams (Green Theme) */}
+          {/* 2. Find Teams (Solid Theme) */}
           <Link
             to="/teams"
-            className="group bg-[#F0FDF4] hover:bg-[#DCFCE7] border border-green-100 rounded-2xl p-6 flex items-center justify-between transition-all shadow-xs"
+            className="group bg-white hover:bg-gray-50 border border-gray-200 rounded-xl p-5 flex items-center justify-between transition-colors shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-green-200/70 text-green-800 flex items-center justify-center font-bold">
-                <Layers className="w-6 h-6" />
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                <Layers className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-base font-bold text-gray-900 group-hover:text-green-900 transition-colors block">
+                <span className="text-sm font-bold text-gray-900 block">
                   Find Teams
                 </span>
                 <span className="text-[11px] text-gray-500">Explore open teams to join</span>
               </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-green-700 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
           </Link>
 
-          {/* 3. My Teams (Blue Theme) */}
+          {/* 3. My Teams (Solid Theme) */}
           <Link
             to="/my-teams"
-            className="group bg-[#EFF6FF] hover:bg-[#DBEAFE] border border-blue-100 rounded-2xl p-6 flex items-center justify-between transition-all shadow-xs"
+            className="group bg-white hover:bg-gray-50 border border-gray-200 rounded-xl p-5 flex items-center justify-between transition-colors shadow-sm"
           >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-blue-200/70 text-blue-800 flex items-center justify-center font-bold">
-                <UserCheck className="w-6 h-6" />
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                <UserCheck className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-base font-bold text-gray-900 group-hover:text-blue-900 transition-colors block">
+                <span className="text-sm font-bold text-gray-900 block">
                   My Teams
                 </span>
                 <span className="text-[11px] text-gray-500">{myTeamsCount} Active Teams</span>
               </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-blue-700 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-gray-700 transition-colors" />
           </Link>
 
         </div>

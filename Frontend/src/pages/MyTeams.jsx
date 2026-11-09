@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Users, Eye, Plus, Sparkles, Calendar } from "lucide-react";
+import { Users, Eye, Plus, Calendar } from "lucide-react";
 import { getMyTeamsApi } from "../services/api";
 import { formatDate } from "../utils/dateUtils";
 
@@ -63,14 +63,14 @@ export default function MyTeams() {
 
         {/* Loading state */}
         {loading && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-xs text-gray-500">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center text-xs text-gray-500">
             Loading your teams...
           </div>
         )}
 
         {/* List of My Teams */}
         {!loading && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {teams.map((team) => {
               const teamId = team._id || team.id;
               const isLeader =
@@ -85,21 +85,21 @@ export default function MyTeams() {
               return (
                 <div
                   key={teamId}
-                  className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-purple-200 hover:shadow-sm transition-all"
+                  className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 hover:border-gray-300 transition-all"
                 >
                   {/* Left Side: Icon + Details */}
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-100/70 text-purple-700 flex items-center justify-center shrink-0 mt-0.5">
-                      <Users className="w-6 h-6" />
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center shrink-0 mt-0.5 font-bold">
+                      <Users className="w-5 h-5" />
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-bold text-gray-900">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-bold text-gray-900">
                           {team.name}
                         </h3>
                         <span
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${isLeader
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${isLeader
                               ? "bg-green-50 text-green-700 border-green-200"
                               : "bg-blue-50 text-blue-700 border-blue-200"
                             }`}
@@ -107,7 +107,7 @@ export default function MyTeams() {
                           {roleLabel}
                         </span>
                         {(team.startDate || team.endDate) && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md font-medium bg-purple-50 text-purple-700 border border-purple-100 flex items-center gap-1">
                             <Calendar className="w-3 h-3 text-purple-600" />
                             {team.startDate ? formatDate(team.startDate) : ""}
                             {team.startDate && team.endDate ? " - " : ""}
@@ -115,14 +115,14 @@ export default function MyTeams() {
                           </span>
                         )}
                         {team.registrationDeadline && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md font-medium bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
                             <Calendar className="w-3 h-3 text-amber-600" />
                             Reg Closes: {formatDate(team.registrationDeadline)}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-xs text-gray-500 mt-0.5 mb-2.5">
+                      <p className="text-xs text-gray-500 mt-1 mb-2">
                         {team.description}
                       </p>
 
@@ -131,7 +131,7 @@ export default function MyTeams() {
                         {skills.map((skill, idx) => (
                           <span
                             key={idx}
-                            className="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-md font-medium border border-purple-100/60"
+                            className="text-[11px] bg-purple-50 text-purple-800 px-2 py-0.5 rounded-md font-medium border border-purple-100"
                           >
                             {skill}
                           </span>
@@ -142,14 +142,14 @@ export default function MyTeams() {
 
                   {/* Right Side: Members Count & View Team Button */}
                   <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                    <span className="text-xs text-purple-700 font-semibold">
+                    <span className="text-xs text-gray-600 font-semibold">
                       Max {team.maxMembers || 4} Members
                     </span>
 
                     <button
                       type="button"
                       onClick={() => navigate(`/teams/${teamId}`)}
-                      className="px-4 py-1.5 rounded-xl text-xs font-semibold border border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-colors flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold border border-purple-200 text-purple-800 hover:bg-purple-50 hover:border-purple-300 transition-colors flex items-center gap-1.5"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>View Details</span>
@@ -163,7 +163,7 @@ export default function MyTeams() {
 
         {/* Empty state */}
         {!loading && teams.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center space-y-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center space-y-3">
             <Users className="w-8 h-8 text-gray-300 mx-auto" />
             <p className="text-sm font-semibold text-gray-700">You haven't joined or created any teams yet</p>
             <p className="text-xs text-gray-400">
@@ -172,13 +172,13 @@ export default function MyTeams() {
             <div className="flex items-center justify-center gap-3 pt-2">
               <Link
                 to="/create-team"
-                className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-xl"
+                className="bg-[#A54100] hover:bg-[#8A3600] text-white text-xs font-semibold px-4 py-2 rounded-lg"
               >
                 Create Team
               </Link>
               <Link
                 to="/teams"
-                className="border border-purple-200 text-purple-700 hover:bg-purple-50 text-xs font-semibold px-4 py-2 rounded-xl"
+                className="border border-purple-200 text-purple-700 hover:bg-purple-50 text-xs font-semibold px-4 py-2 rounded-lg"
               >
                 Browse Teams
               </Link>

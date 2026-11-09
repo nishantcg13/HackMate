@@ -1,9 +1,26 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import Team from "../models/Team.js";
 import TeamMember from "../models/TeamMember.js";
 import User from "../models/User.js";
 import JoinRequest from "../models/JoinRequest.js";
 import Hackathon from "../models/Hackathon.js";
+
+// Helper to extract user ID from auth header or token safely
+const getUserIdFromReq = (req) => {
+  if (req.user?.id || req.user?._id) return (req.user.id || req.user._id).toString();
+  try {
+    const authHeader = req.get("Authorization") || req.headers?.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "hello@123");
+      return (decoded?.id || decoded?._id)?.toString() || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
 
 // ===============================================================
 // API #5: POST /api/teams
@@ -156,12 +173,39 @@ export const getAllTeams = async (req, res) => {
       .limit(limitNum)
       .sort({ createdAt: -1 });
 
+    const reqUserId = getUserIdFromReq(req);
+
+    const teamsWithMemberCounts = await Promise.all(
+      teams.map(async (t) => {
+        const teamObj = t.toObject();
+        const memberCount = await TeamMember.countDocuments({
+          $or: [{ team: t._id }, { teamId: t._id }],
+        });
+        teamObj.currentMembers = memberCount > 0 ? memberCount : 1;
+        teamObj.membersCount = teamObj.currentMembers;
+
+        if (reqUserId) {
+          const isUserMember = await TeamMember.exists({
+            $and: [
+              { $or: [{ team: t._id }, { teamId: t._id }] },
+              { $or: [{ user: reqUserId }, { userId: reqUserId }] },
+            ],
+          });
+          teamObj.isMember = Boolean(isUserMember);
+        } else {
+          teamObj.isMember = false;
+        }
+
+        return teamObj;
+      })
+    );
+
     return res.status(200).json({
       success: true,
       totalTeams,
       currentPage: pageNum,
       totalPages: Math.ceil(totalTeams / limitNum),
-      teams,
+      teams: teamsWithMemberCounts,
     });
   } catch (error) {
     return res.status(500).json({
@@ -197,10 +241,25 @@ export const getTeamById = async (req, res) => {
       $or: [{ team: id }, { teamId: id }],
     }).populate("user", "name email skills");
 
+    // 3. Check if calling user is already a member
+    const reqUserId = getUserIdFromReq(req);
+    let isUserMember = false;
+    if (reqUserId) {
+      isUserMember = Boolean(
+        await TeamMember.exists({
+          $and: [
+            { $or: [{ team: id }, { teamId: id }] },
+            { $or: [{ user: reqUserId }, { userId: reqUserId }] },
+          ],
+        })
+      );
+    }
+
     return res.status(200).json({
       success: true,
       team,
       members,
+      isUserMember,
     });
   } catch (error) {
     return res.status(500).json({
@@ -359,10 +418,37 @@ export const getMyTeams = async (req, res) => {
       .populate("leader", "name email")
       .populate("hackathon", "title name");
 
+    const reqUserId = getUserIdFromReq(req);
+
+    const teamsWithMemberCounts = await Promise.all(
+      teams.map(async (t) => {
+        const teamObj = t.toObject();
+        const memberCount = await TeamMember.countDocuments({
+          $or: [{ team: t._id }, { teamId: t._id }],
+        });
+        teamObj.currentMembers = memberCount > 0 ? memberCount : 1;
+        teamObj.membersCount = teamObj.currentMembers;
+
+        if (reqUserId) {
+          const isUserMember = await TeamMember.exists({
+            $and: [
+              { $or: [{ team: t._id }, { teamId: t._id }] },
+              { $or: [{ user: reqUserId }, { userId: reqUserId }] },
+            ],
+          });
+          teamObj.isMember = Boolean(isUserMember);
+        } else {
+          teamObj.isMember = false;
+        }
+
+        return teamObj;
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      count: teams.length,
-      teams,
+      count: teamsWithMemberCounts.length,
+      teams: teamsWithMemberCounts,
     });
   } catch (error) {
     return res.status(500).json({
@@ -506,10 +592,37 @@ export const searchTeams = async (req, res) => {
       .populate("leader", "name email")
       .populate("hackathon", "title name");
 
+    const reqUserId = getUserIdFromReq(req);
+
+    const teamsWithMemberCounts = await Promise.all(
+      teams.map(async (t) => {
+        const teamObj = t.toObject();
+        const memberCount = await TeamMember.countDocuments({
+          $or: [{ team: t._id }, { teamId: t._id }],
+        });
+        teamObj.currentMembers = memberCount > 0 ? memberCount : 1;
+        teamObj.membersCount = teamObj.currentMembers;
+
+        if (reqUserId) {
+          const isUserMember = await TeamMember.exists({
+            $and: [
+              { $or: [{ team: t._id }, { teamId: t._id }] },
+              { $or: [{ user: reqUserId }, { userId: reqUserId }] },
+            ],
+          });
+          teamObj.isMember = Boolean(isUserMember);
+        } else {
+          teamObj.isMember = false;
+        }
+
+        return teamObj;
+      })
+    );
+
     return res.status(200).json({
       success: true,
-      count: teams.length,
-      teams,
+      count: teamsWithMemberCounts.length,
+      teams: teamsWithMemberCounts,
     });
   } catch (error) {
     return res.status(500).json({

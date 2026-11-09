@@ -87,14 +87,14 @@ export default function CreateTeam() {
         </Link>
 
         {/* Main Form Card */}
-        <div className="bg-white border border-gray-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8 shadow-xs space-y-6">
 
           <div className="flex items-center gap-3 border-b pb-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
-              <Users className="w-6 h-6 text-[#A54100]" />
+            <div className="w-10 h-10 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-bold">
+              <Users className="w-5 h-5 text-[#A54100]" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
+              <h1 className="text-lg font-bold text-gray-900">
                 Create a Team
               </h1>
               <p className="text-xs text-gray-500 mt-0.5">

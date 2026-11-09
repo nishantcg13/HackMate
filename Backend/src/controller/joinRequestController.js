@@ -99,9 +99,12 @@ export const sendJoinRequest = async (req, res) => {
 
     // Check whether a pending request already exists
     const existingRequest = await JoinRequest.findOne({
-      team: teamId,
-      requester: userId,
-      status: "Pending"
+      $or: [
+        { team: teamId, requester: userId, status: "Pending" },
+        { teamId: teamId, userId: userId, status: "Pending" },
+        { team: teamId, userId: userId, status: "Pending" },
+        { teamId: teamId, requester: userId, status: "Pending" },
+      ],
     });
 
     if (existingRequest) {
@@ -126,8 +129,12 @@ export const sendJoinRequest = async (req, res) => {
     // Create join request
     const joinRequest = await JoinRequest.create({
       team: teamId,
+      teamId: teamId,
       requester: userId,
-      message: message?.trim() || ""
+      user: userId,
+      userId: userId,
+      message: message?.trim() || "",
+      status: "Pending",
     });
 
     return res.status(201).json({
@@ -176,7 +183,11 @@ export const getSentRequests = async (req, res) => {
 
     // Find all requests sent by logged-in user
     const requests = await JoinRequest.find({
-      requester: userId
+      $or: [
+        { requester: userId },
+        { user: userId },
+        { userId: userId },
+      ],
     })
       .populate("team", "name description leader maxMembers isOpen")
       .sort({ createdAt: -1 });

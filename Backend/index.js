@@ -8,6 +8,7 @@ import teamRoutes from "./src/routes/teamRoutes.js";
 import teamMemberRoutes from "./src/routes/teamMemberRoutes.js";
 import joinRequestRoutes from "./src/routes/joinRequestRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
+import contactRoutes from "./src/routes/contactRoutes.js";
 
 import dbConnection from "./src/config/dbConfig.js";
 import User from "./src/models/User.js";
@@ -36,6 +37,7 @@ app.use("/api/teams", teamRoutes);
 app.use("/api/team-members", teamMemberRoutes);
 app.use("/api/join-requests", joinRequestRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Auto-seed Admin account if database is freshly created/empty
 const seedInitialData = async () => {

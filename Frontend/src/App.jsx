@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import CreateTeam from "./pages/CreateTeam";
 import AboutUs from "./pages/AboutUs";
+import ContactUs from "./pages/ContactUs";
 
 import { getMeApi } from "./services/api";
 
@@ -82,6 +83,8 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/about-us" element={<Navigate to="/about" replace />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/contact-us" element={<Navigate to="/contact" replace />} />
 
           {/* Admin Portal */}
           <Route path="/admin" element={<Admin />} />
