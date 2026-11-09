@@ -229,19 +229,38 @@ export const getReceivedRequests = async (req, res) => {
       });
     }
 
-    // Find all teams created/led by the logged-in user
-    const teams = await Team.find({
-      $or: [{ leader: userId }, { leaderId: userId }],
-    }).select("_id");
+    // Check if user is an ADMIN
+    const User = mongoose.model("User");
+    const userDoc = await User.findById(userId).select("role email");
+    const isAdmin =
+      req.user?.role === "ADMIN" ||
+      userDoc?.role === "ADMIN" ||
+      userDoc?.email?.toLowerCase() === "admin@hackmate.com" ||
+      userDoc?.email?.toLowerCase() === "admin@gmail.com";
 
-    // Get team IDs
-    const teamIds = teams.map((team) => team._id);
+    let filter = {};
 
-    // Build filter for join requests - only return pending requests that need leader action
-    const filter = {
-      $or: [{ team: { $in: teamIds } }, { teamId: { $in: teamIds } }],
-      status: req.query.status || "Pending",
-    };
+    if (isAdmin && (req.query.all === "true" || req.query.admin === "true")) {
+      // In global admin view, fetch all pending requests
+      filter = { status: req.query.status || "Pending" };
+    } else {
+      // Find all teams created/led by the logged-in user
+      const teams = await Team.find({
+        $or: [{ leader: userId }, { leaderId: userId }],
+      }).select("_id");
+
+      const teamIds = teams.map((team) => team._id);
+
+      // If user is also an Admin and has no teams of their own, fallback to showing all requests
+      if (teamIds.length === 0 && isAdmin) {
+        filter = { status: req.query.status || "Pending" };
+      } else {
+        filter = {
+          $or: [{ team: { $in: teamIds } }, { teamId: { $in: teamIds } }],
+          status: req.query.status || "Pending",
+        };
+      }
+    }
 
     // Find join requests received by these teams
     const requests = await JoinRequest.find(filter)
