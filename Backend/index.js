@@ -39,21 +39,24 @@ app.use("/api/join-requests", joinRequestRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/contact", contactRoutes);
 
-// Auto-seed Admin account if database is freshly created/empty
+// Auto-seed Admin accounts if database is freshly created/empty
 const seedInitialData = async () => {
   try {
-    const existingAdmin = await User.findOne({ email: "admin@gmail.com" });
-    if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash("admin123", 10);
-      await User.create({
-        name: "Admin",
-        email: "admin@gmail.com",
-        password: hashedPassword,
-        role: "ADMIN",
-        skills: ["Administration", "Management"],
-        bio: "HackMate System Administrator",
-      });
-      console.log("Database initialized: Default admin account created (admin@hackmate.com / admin123)");
+    const adminEmails = ["admin@hackmate.com", "admin@gmail.com"];
+    for (const adminEmail of adminEmails) {
+      const existing = await User.findOne({ email: adminEmail });
+      if (!existing) {
+        const hashedPassword = await bcrypt.hash("admin123", 10);
+        await User.create({
+          name: "Admin",
+          email: adminEmail,
+          password: hashedPassword,
+          role: "ADMIN",
+          skills: ["Administration", "Management"],
+          bio: "HackMate System Administrator",
+        });
+        console.log(`Database initialized: Admin account created (${adminEmail} / admin123)`);
+      }
     }
   } catch (err) {
     console.error("Seed error:", err.message);

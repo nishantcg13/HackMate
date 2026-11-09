@@ -71,6 +71,7 @@ export async function login(request, response) {
     const token = jwt.sign(
       {
         id: user.id || user._id,
+        role: user.role || "USER",
       },
       JWT_SECRET,
     );
