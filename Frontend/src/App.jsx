@@ -12,6 +12,7 @@ import JoinRequests from "./pages/JoinRequests";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import CreateTeam from "./pages/CreateTeam";
+import AboutUs from "./pages/AboutUs";
 
 import { getMeApi } from "./services/api";
 
@@ -79,6 +80,8 @@ export default function App() {
           <Route path="/requests" element={<JoinRequests />} />
           <Route path="/join-requests" element={<Navigate to="/requests" replace />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/about-us" element={<Navigate to="/about" replace />} />
 
           {/* Admin Portal */}
           <Route path="/admin" element={<Admin />} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, UserCheck, Layers, Bell, Shield, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, UserCheck, Layers, Bell, Shield, LogOut, Info } from "lucide-react";
 import { getReceivedRequestsApi, logoutApi } from "../services/api";
 
 export default function Navbar({ requestCount: propCount }) {
@@ -52,6 +52,7 @@ export default function Navbar({ requestCount: propCount }) {
     { name: "Teammates", path: "/teammates", icon: Users },
     { name: "Teams", path: "/teams", icon: Layers },
     { name: "My Teams", path: "/my-teams", icon: UserCheck },
+    { name: "About Us", path: "/about", icon: Info },
   ];
 
   return (

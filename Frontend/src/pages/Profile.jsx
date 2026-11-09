@@ -97,7 +97,7 @@ export default function Profile() {
       <Navbar />
 
       <main className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 space-y-6">
-        
+
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             My Profile
@@ -121,7 +121,7 @@ export default function Profile() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
+
           {/* Left Column: Avatar & Basic Info */}
           <div className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-xs flex flex-col items-center text-center justify-center space-y-4">
             <div className="w-20 h-20 rounded-full bg-purple-100 text-purple-800 font-extrabold text-2xl flex items-center justify-center shadow-xs">
