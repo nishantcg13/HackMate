@@ -402,8 +402,14 @@ export const acceptJoinRequest = async (req, res) => {
       });
     }
 
-    // Find the team
-    const team = await Team.findById(joinRequest.team);
+    // Find the target team (support both team and teamId fields)
+    const targetTeamId =
+      joinRequest.team?._id ||
+      joinRequest.team ||
+      joinRequest.teamId?._id ||
+      joinRequest.teamId;
+
+    const team = await Team.findById(targetTeamId);
 
     if (!team) {
       return res.status(404).json({
@@ -412,14 +418,28 @@ export const acceptJoinRequest = async (req, res) => {
       });
     }
 
-    // Check whether logged-in user is the team leader
-    const isLeader =
-      (team.leader && team.leader.toString() === userId.toString()) ||
-      (team.leaderId && team.leaderId.toString() === userId.toString());
-    if (!isLeader) {
+    // Check whether logged-in user is the team leader or an admin
+    const User = mongoose.model("User");
+    const userDoc = await User.findById(userId).select("role email");
+    const isAdmin =
+      req.user?.role === "ADMIN" ||
+      userDoc?.role === "ADMIN" ||
+      userDoc?.email?.toLowerCase() === "admin@hackmate.com" ||
+      userDoc?.email?.toLowerCase() === "admin@gmail.com";
+
+    const leaderIdStr = (
+      team.leader?._id ||
+      team.leader ||
+      team.leaderId?._id ||
+      team.leaderId
+    )?.toString();
+
+    const isLeader = leaderIdStr && leaderIdStr === userId.toString();
+
+    if (!isLeader && !isAdmin) {
       return res.status(403).json({
         success: false,
-        message: "Only the team leader can accept join requests"
+        message: "Only the team leader or administrator can accept join requests"
       });
     }
 
@@ -427,21 +447,38 @@ export const acceptJoinRequest = async (req, res) => {
     if (joinRequest.status !== "Pending") {
       return res.status(400).json({
         success: false,
-        message: `Cannot accept a ${joinRequest.status} request`
+        message: `Cannot accept a request that is already ${joinRequest.status}`
       });
     }
 
-    // Check whether requester is already a team member
-    const applicantId = joinRequest.requester || joinRequest.user || joinRequest.userId;
+    // Check whether requester is already a team member of THIS team
+    const applicantId =
+      joinRequest.requester?._id ||
+      joinRequest.requester ||
+      joinRequest.user?._id ||
+      joinRequest.user ||
+      joinRequest.userId?._id ||
+      joinRequest.userId;
+
     const existingMember = await TeamMember.findOne({
-      $or: [{ team: team._id }, { teamId: team._id }],
-      $or: [{ user: applicantId }, { userId: applicantId }]
+      $and: [
+        { $or: [{ team: team._id }, { teamId: team._id }] },
+        { $or: [{ user: applicantId }, { userId: applicantId }] },
+      ],
     });
 
     if (existingMember) {
-      return res.status(409).json({
-        success: false,
-        message: "User is already a member of this team"
+      // If already a member of this team, mark request accepted and succeed cleanly
+      joinRequest.status = "Accepted";
+      await joinRequest.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "User is already a member of this team. Request marked as accepted.",
+        data: {
+          request: joinRequest,
+          teamMember: existingMember,
+        },
       });
     }
 
@@ -454,33 +491,36 @@ export const acceptJoinRequest = async (req, res) => {
     if (memberCount >= team.maxMembers) {
       return res.status(400).json({
         success: false,
-        message: "Team has reached its maximum member limit"
+        message: `Team has reached its maximum member limit (${team.maxMembers} members)`
       });
     }
 
     // Add requester to TeamMember collection
-    await TeamMember.create({
+    const newMember = await TeamMember.create({
       team: team._id,
       teamId: team._id,
       user: applicantId,
       userId: applicantId,
-      role: "Member"
+      role: "Member",
+      joinedAt: new Date(),
     });
 
     // Update join request status
     joinRequest.status = "Accepted";
     await joinRequest.save();
 
+    // Auto-close team if it just reached maximum capacity
+    if (memberCount + 1 >= team.maxMembers) {
+      team.status = "CLOSED";
+      await team.save();
+    }
+
     return res.status(200).json({
       success: true,
       message: "Join request accepted successfully",
       data: {
         request: joinRequest,
-        teamMember: {
-          team: team._id,
-          user: joinRequest.requester,
-          role: "Member"
-        }
+        teamMember: newMember,
       }
     });
 
@@ -488,8 +528,8 @@ export const acceptJoinRequest = async (req, res) => {
     console.error("Accept Join Request Error:", error);
 
     if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "User is already a member of this team"
       });
     }
@@ -541,8 +581,14 @@ export const rejectJoinRequest = async (req, res) => {
       });
     }
 
-    // Find the team
-    const team = await Team.findById(joinRequest.team);
+    // Find the target team (support both team and teamId fields)
+    const targetTeamId =
+      joinRequest.team?._id ||
+      joinRequest.team ||
+      joinRequest.teamId?._id ||
+      joinRequest.teamId;
+
+    const team = await Team.findById(targetTeamId);
 
     if (!team) {
       return res.status(404).json({
@@ -551,11 +597,28 @@ export const rejectJoinRequest = async (req, res) => {
       });
     }
 
-    // Check whether logged-in user is the team leader
-    if (team.leader.toString() !== userId.toString()) {
+    // Check whether logged-in user is the team leader or an admin
+    const User = mongoose.model("User");
+    const userDoc = await User.findById(userId).select("role email");
+    const isAdmin =
+      req.user?.role === "ADMIN" ||
+      userDoc?.role === "ADMIN" ||
+      userDoc?.email?.toLowerCase() === "admin@hackmate.com" ||
+      userDoc?.email?.toLowerCase() === "admin@gmail.com";
+
+    const leaderIdStr = (
+      team.leader?._id ||
+      team.leader ||
+      team.leaderId?._id ||
+      team.leaderId
+    )?.toString();
+
+    const isLeader = leaderIdStr && leaderIdStr === userId.toString();
+
+    if (!isLeader && !isAdmin) {
       return res.status(403).json({
         success: false,
-        message: "Only the team leader can reject join requests"
+        message: "Only the team leader or administrator can reject join requests"
       });
     }
 
@@ -563,7 +626,7 @@ export const rejectJoinRequest = async (req, res) => {
     if (joinRequest.status !== "Pending") {
       return res.status(400).json({
         success: false,
-        message: `Cannot reject a ${joinRequest.status} request`
+        message: `Cannot reject a request that is already ${joinRequest.status}`
       });
     }
 
