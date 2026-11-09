@@ -583,7 +583,7 @@ export default function Admin() {
             </div>
 
             {/* Users Table */}
-            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase text-[10px] tracking-wider font-semibold">
@@ -592,7 +592,6 @@ export default function Admin() {
                       <th className="py-3 px-4">Role</th>
                       <th className="py-3 px-4">Skills</th>
                       <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-gray-700">
@@ -626,16 +625,6 @@ export default function Admin() {
                           <span className="bg-green-50 text-green-700 border border-green-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
                             {u.status}
                           </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteUser(u.id, u.name)}
-                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete user"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </td>
                       </tr>
                     ))}
